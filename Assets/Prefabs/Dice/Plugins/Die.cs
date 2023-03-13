@@ -110,7 +110,7 @@ public class Die : MonoBehaviour {
 
     void Update()
     {
-		// determine the value is the die is not rolling
+		// determine the value if the die is not rolling
         if (!rolling && localHit)
         {
             if(!canGetValue)

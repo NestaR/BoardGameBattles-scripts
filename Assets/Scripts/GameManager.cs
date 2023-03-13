@@ -4,10 +4,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
-    public bool canRoll;
+    public bool canRoll, mouseEnabled;
     public string tileColour;
     public GameObject sceneObjects, battleObjects, diceObject, menuCanvas;
-
+    PlayerMovement playerM;
     void Update()
     {
         if (Input.GetKeyDown("m") && !menuCanvas.activeSelf)
@@ -45,7 +45,8 @@ public class GameManager : MonoBehaviour
         }
         else if(tileColour == "Blue" || tileColour == "Orange" || tileColour == "Yellow")
         {
-            //canRoll = true;
+            OtherScene();
+            tileColour = "";
         }
     }
     public void UnloadScene()
@@ -60,6 +61,12 @@ public class GameManager : MonoBehaviour
         deactivateAll();
         SceneManager.LoadScene("BattleScene", LoadSceneMode.Additive);
     }
+    public void OtherScene()
+    {
+        //canRoll = true;
+        diceObject = GameObject.Find("d6(Clone)");
+        GameObject.Destroy(diceObject);
+    }
     public void deactivateAll()
     {
         PlayerPrefs.SetInt("NextScene", 1);
@@ -72,6 +79,10 @@ public class GameManager : MonoBehaviour
     {
         sceneObjects.SetActive(true);
         battleObjects.SetActive(false);
+    }
+    public void deleteAllKeys()
+    {
+        PlayerPrefs.DeleteAll();
     }
     public void SetInt(string KeyName, int Value)
     {

@@ -16,18 +16,18 @@ public class GetDiceRoll : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        checkRolling = PlayerPrefs.GetInt(FinishedRolling);
+        //checkRolling = PlayerPrefs.GetInt(FinishedRolling);
 
-        if ((Input.GetButtonUp("Fire1") || Input.GetMouseButtonUp(0)) && checkRolling == 1)
-        {
-            MoveAmount = PlayerPrefs.GetInt(PlayerDiceRoll);
-            Debug.Log("You rolled a " + MoveAmount);
-            PlayerPrefs.SetInt(FinishedRolling, 2);
-        }
-        if ((Input.GetMouseButtonUp(1)) && checkRolling >= 1)
-        {
-            PlayerPrefs.DeleteAll();
-        }
+        //if ((Input.GetButtonUp("Fire1") || Input.GetMouseButtonUp(0)) && checkRolling == 1)
+        //{
+            //MoveAmount = PlayerPrefs.GetInt(PlayerDiceRoll);
+            //Debug.Log("You rolled a " + MoveAmount);
+            //PlayerPrefs.SetInt(FinishedRolling, 2);
+        //}
+        //else if ((Input.GetMouseButtonUp(1)) && checkRolling >= 1)
+        //{
+        //    PlayerPrefs.SetInt(FinishedRolling, 0);
+        //}
     }
     public void SetInt(string KeyName, int Value)
     {
@@ -36,5 +36,9 @@ public class GetDiceRoll : MonoBehaviour
     public int GetInt(string KeyName)
     {
         return PlayerPrefs.GetInt(KeyName);
+    }
+    public void DeleteKey(string KeyName)
+    {
+        PlayerPrefs.DeleteKey(KeyName);
     }
 }

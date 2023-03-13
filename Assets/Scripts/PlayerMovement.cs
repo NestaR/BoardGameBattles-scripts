@@ -12,7 +12,7 @@ public class PlayerMovement : MonoBehaviour
     Vector3 startPos, nextPos;
     public bool movingPlayer, finishedMoving, endReached, defeated;
     public float moveTimer;
-    private const string PlayerDiceRoll = "PlayerDiceRoll";
+    private const string PlayerDiceRoll = "PlayerDiceRoll", FinishedRolling = "FinishedRolling";
 
     void Start()
     {
@@ -43,11 +43,13 @@ public class PlayerMovement : MonoBehaviour
         }
         if (player.transform.position == nextPos)
         {
-            finishedMoving = true;
+            
             movingPlayer = false;
             if (counter == moveAmount)
             {
+                finishedMoving = true;
                 PlayerPrefs.DeleteKey(PlayerDiceRoll);
+                //PlayerPrefs.SetInt(FinishedRolling, 2);
                 counter = 0;
                 gameManager.GetComponent<GameManager>().canRoll = true;
                 gameManager.GetComponent<GameManager>().tileColour = currentTileColour;
