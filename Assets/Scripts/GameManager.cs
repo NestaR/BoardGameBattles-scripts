@@ -2,14 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+
 public class GameManager : MonoBehaviour
 {
     public bool canRoll, mouseEnabled;
     public string tileColour;
-    public GameObject sceneObjects, battleObjects, diceObject, menuCanvas;
+    public GameObject sceneObjects, battleObjects, diceObject, menuCanvas, chestCanvas, shopCanvas, buffCanvas;
     PlayerMovement playerM;
+    void Start()
+    {
+        //PlayerPrefs.DeleteKey("CurrentTile");
+        //tileColour = "";
+    }
     void Update()
     {
+        
         if (Input.GetKeyDown("m") && !menuCanvas.activeSelf)
         {//Open menu panel
             menuCanvas.SetActive(true);
@@ -33,20 +40,53 @@ public class GameManager : MonoBehaviour
             canRoll = true;
             PlayerPrefs.DeleteKey("NextScene");
         }
-        if(tileColour == "Green")
+        //if(PlayerPrefs.HasKey("CurrentTile"))
+        //{
+        //    tileColour = PlayerPrefs.GetString("CurrentTile");
+        //}
+        //else
+        //{
+        //    tileColour = "";
+        //}
+        //switch (tileColour)
+        //{
+        //    case "Green":
+        //        BattleScene();
+        //        break;
+        //    case "Red":
+        //        BattleScene();
+        //        break;
+        //    case "Yellow":
+        //        ChestScene();
+        //        break;
+        //    case "Blue":
+        //        BuffScene();
+        //        break;
+        //    case "Orange":
+        //        break;
+        //    default:
+        //        PlayerPrefs.DeleteKey("CurrentTile");
+        //        break;
+        //}
+        if (tileColour == "Green")
         {
             BattleScene();
-            tileColour = "";
         }
         else if (tileColour == "Red")
         {
             BattleScene();
-            tileColour = "";
         }
-        else if(tileColour == "Blue" || tileColour == "Orange" || tileColour == "Yellow")
+        else if (tileColour == "Yellow")
         {
-            OtherScene();
-            tileColour = "";
+            ChestScene();
+        }
+        else if (tileColour == "Blue")
+        {
+            BuffScene();
+        }
+        else if (tileColour == "Black")
+        {
+            BattleScene();
         }
     }
     public void UnloadScene()
@@ -59,6 +99,7 @@ public class GameManager : MonoBehaviour
     public void BattleScene()
     {
         deactivateAll();
+        tileColour = "";
         SceneManager.LoadScene("BattleScene", LoadSceneMode.Additive);
     }
     public void OtherScene()
@@ -66,6 +107,18 @@ public class GameManager : MonoBehaviour
         //canRoll = true;
         diceObject = GameObject.Find("d6(Clone)");
         GameObject.Destroy(diceObject);
+    }
+    public void ChestScene()
+    {
+        chestCanvas.SetActive(true);
+        tileColour = "";
+        PlayerPrefs.DeleteKey("CurrentTile");
+    }
+    public void BuffScene()
+    {
+        buffCanvas.SetActive(true);
+        tileColour = "";
+        PlayerPrefs.DeleteKey("CurrentTile");
     }
     public void deactivateAll()
     {
@@ -96,12 +149,12 @@ public class GameManager : MonoBehaviour
     {
         if (PlayerPrefs.HasKey(KeyName))
         {
-            //Debug.Log("The key " + KeyName + " exists");
+            Debug.Log("The key " + KeyName + " exists");
             return true;
         }
         else
         {
-            //Debug.Log("The key " + KeyName + " does not exist");
+            Debug.Log("The key " + KeyName + " does not exist");
             return false;
         }
     }

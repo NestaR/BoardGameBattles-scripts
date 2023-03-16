@@ -53,6 +53,26 @@ public class HealthScript : MonoBehaviour
     {//Calculates the percentage of health remaining to accurately update the slider
         return playerHP / maxHP;
     }
-
+    public void SetInt(string KeyName, int Value)
+    {
+        PlayerPrefs.SetInt(KeyName, Value);
+    }
+    public int GetInt(string KeyName)
+    {
+        return PlayerPrefs.GetInt(KeyName);
+    }
+    public bool HasKey(string KeyName)
+    {
+        if (PlayerPrefs.HasKey(KeyName))
+        {
+            Debug.Log("The key " + KeyName + " exists");
+            return true;
+        }
+        else
+        {
+            Debug.Log("The key " + KeyName + " does not exist");
+            return false;
+        }
+    }
 
 }

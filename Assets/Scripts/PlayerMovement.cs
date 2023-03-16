@@ -31,6 +31,7 @@ public class PlayerMovement : MonoBehaviour
         if(PlayerPrefs.HasKey(PlayerDiceRoll) && !movingPlayer)
         {
             moveAmount = PlayerPrefs.GetInt(PlayerDiceRoll);
+
             FindNextPosition();
             counter += 1;
         }
@@ -49,6 +50,7 @@ public class PlayerMovement : MonoBehaviour
             {
                 finishedMoving = true;
                 PlayerPrefs.DeleteKey(PlayerDiceRoll);
+                PlayerPrefs.SetString("CurrentTile", currentTileColour);
                 //PlayerPrefs.SetInt(FinishedRolling, 2);
                 counter = 0;
                 gameManager.GetComponent<GameManager>().canRoll = true;
@@ -66,6 +68,7 @@ public class PlayerMovement : MonoBehaviour
     }
     void FindNextPosition()
     {
+        PlayerPrefs.DeleteKey("CurrentTile");
         movingPlayer = true;
         finishedMoving = false;
         
@@ -121,6 +124,14 @@ public class PlayerMovement : MonoBehaviour
     public int GetInt(string KeyName)
     {
         return PlayerPrefs.GetInt(KeyName);
+    }
+    public void SetString(string KeyName, string Value)
+    {
+        PlayerPrefs.SetString(KeyName, Value);
+    }
+    public void GetString(string KeyName)
+    {
+        PlayerPrefs.GetString(KeyName);
     }
     public bool HasKey(string KeyName)
     {

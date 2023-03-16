@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 
 public class BattleMenu : MonoBehaviour
 {
-    public GameObject attackButton, playerAttack1, playerAttacksPanel, menuPanel;
+    public GameObject attackButton, playerAttackButton1, playerAttacksPanel, menuPanel;   
     // Start is called before the first frame update
     void Start()
     {
@@ -26,7 +26,7 @@ public class BattleMenu : MonoBehaviour
     {
         playerAttacksPanel.SetActive(true);
         menuPanel.SetActive(false);
-        EventSystem.current.SetSelectedGameObject(playerAttack1);
+        EventSystem.current.SetSelectedGameObject(playerAttackButton1);
     }
     public void showBattleMenu()
     {

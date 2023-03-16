@@ -11,13 +11,17 @@ public class BattleMoves : MonoBehaviour
     bool attack1, attack2, attack3, attack4, moveFinished, stationaryAttack;
     public Button battack1, battack2, battack3, battack4, backButton;
     public string attackName;
-    public int battleTurn;
+    public int battleTurn, playerHP, battleAttack, battleDefence, battleSpeed;
+    public Text attackUI, defenceUI;
     // Start is called before the first frame update
     void Awake()
     {
         if(isEnemy)
-        {
+        {       
             enemy = GameObject.FindWithTag("Enemy");
+            player = GameObject.FindWithTag("Player");
+            //battleAttack = enemy.GetComponent<PlayerStats>().EattackRating;
+
             enemystartPos = enemy.transform.position;
             EAttackPos.x = enemyAttackP.transform.position.x;
             EAttackPos.y = enemy.transform.position.y;
@@ -25,13 +29,15 @@ public class BattleMoves : MonoBehaviour
         }
         else
         {
+            //battleAttack = PlayerPrefs.GetInt("AttackRating");
             enemy = GameObject.FindWithTag("Enemy");
+            player = GameObject.FindWithTag("Player");
             PAttackPos.x = playerAttackP.transform.position.x;
             PAttackPos.y = player.transform.position.y;
             PAttackPos.z = player.transform.position.z;
 
             startPos = player.transform.position;
-
+            
             battack1.onClick.AddListener(chooseAttack1);
             battack2.onClick.AddListener(chooseAttack2);
             battack3.onClick.AddListener(chooseAttack3);
@@ -42,6 +48,7 @@ public class BattleMoves : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //playerHP = PlayerPrefs.GetInt("HealthRating");
         battleTurn = PlayerPrefs.GetInt("BattleTurn");
         if(battleTurn == 0 && isEnemy && !attacking)
         {
@@ -50,27 +57,26 @@ public class BattleMoves : MonoBehaviour
             checkStationary();
             playerAttackPosition();
         }
+        if(!isEnemy)
+        {//Show buffs the player has
+            attackUI.text = "+ " + "(" + battleAttack.ToString() + ")";
+            defenceUI.text = "+ " + "(" + battleDefence.ToString() + ")";
+        }
         if(battleTurn == 1 && !isEnemy && turnFinished)
         {
             enableButtons();
         }
         if(attackReady)
         {
-            if(attack1)
+            if(attack1 || attack2 || attack3 || attack4)
             {
                 Invoke(attackName, 0.1f);
                 attackReady = false;
                 attackChosen = false;
             }
-            else if (attack2)
+            if (isEnemy)
             {
-                Invoke(attackName, 0.1f);
-                attackReady = false;
-                attackChosen = false;
-            }
-            if(isEnemy)
-            {
-                Invoke(attackName, 0.1f);
+                Invoke(attackName, 0f);
                 attackReady = false;
             }
         }
@@ -89,6 +95,7 @@ public class BattleMoves : MonoBehaviour
     public void chooseAttack1()
     {
         attackName = battack1.GetComponentInChildren<Text>().text;
+        attackName = attackName.Replace(" ", "");
         attack1 = true;
         attackChosen = true;
         checkStationary();
@@ -96,6 +103,7 @@ public class BattleMoves : MonoBehaviour
     public void chooseAttack2()
     {
         attackName = battack2.GetComponentInChildren<Text>().text;
+        attackName = attackName.Replace(" ", "");
         attack2 = true;
         attackChosen = true;
         checkStationary();
@@ -103,6 +111,7 @@ public class BattleMoves : MonoBehaviour
     public void chooseAttack3()
     {
         attackName = battack3.GetComponentInChildren<Text>().text;
+        attackName = attackName.Replace(" ", "");
         attack3 = true;
         attackChosen = true;
         checkStationary();
@@ -110,6 +119,7 @@ public class BattleMoves : MonoBehaviour
     public void chooseAttack4()
     {
         attackName = battack4.GetComponentInChildren<Text>().text;
+        attackName = attackName.Replace(" ", "");
         attack4 = true;
         attackChosen = true;
         checkStationary();
@@ -118,11 +128,12 @@ public class BattleMoves : MonoBehaviour
     {
         if(isEnemy && !moveFinished)
         {
-            player.GetComponent<PlayerStats>().currentHealth -= 10;
+            //player.GetComponent<PlayerStats>().currentHealth -= 10;
+            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (10 + calcAttackValue() - calcDefenceValue())));
         }
         else if(!isEnemy && !moveFinished)
         {
-            enemy.GetComponent<PlayerStats>().EcurrentHealth -= 10;
+            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (10 + calcAttackValue() - calcDefenceValue());
         }
         moveFinished = true;
     }
@@ -130,11 +141,43 @@ public class BattleMoves : MonoBehaviour
     {
         if (isEnemy && !moveFinished)
         {
-            player.GetComponent<PlayerStats>().currentHealth -= 10;
+            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (5 + calcAttackValue() - calcDefenceValue())));
         }
         else if(!isEnemy && !moveFinished)
         {
-            enemy.GetComponent<PlayerStats>().EcurrentHealth -= 5;
+            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (5 + calcAttackValue() - calcDefenceValue());
+        }
+        moveFinished = true;
+    }
+    public void AttackBuff()
+    {
+        if (isEnemy && !moveFinished)
+        {
+            battleAttack += 15;
+            //battleAttack = enemy.GetComponent<PlayerStats>().EattackRating + battleAttack + 3;
+            //enemy.GetComponent<PlayerStats>().EattackRating += 3;
+        }
+        else if (!isEnemy && !moveFinished)
+        {
+            battleAttack += 15;
+            //PlayerPrefs.SetInt("BattleAttack", battleAttack)
+            //PlayerPrefs.SetInt("AttackRating", (player.GetComponent<PlayerStats>().attackRating + 3));
+        }
+        moveFinished = true;
+    }
+    public void DefenceBuff()
+    {
+        if (isEnemy && !moveFinished)
+        {
+            battleDefence += 15;
+            //battleAttack = enemy.GetComponent<PlayerStats>().EattackRating + battleAttack + 3;
+            //enemy.GetComponent<PlayerStats>().EattackRating += 3;
+        }
+        else if (!isEnemy && !moveFinished)
+        {
+            battleDefence += 15;
+            //PlayerPrefs.SetInt("BattleAttack", battleAttack)
+            //PlayerPrefs.SetInt("AttackRating", (player.GetComponent<PlayerStats>().attackRating + 3));
         }
         moveFinished = true;
     }
@@ -210,7 +253,8 @@ public class BattleMoves : MonoBehaviour
                 PlayerPrefs.SetInt("BattleTurn", 0);
             }
         }
-        PlayerPrefs.Save();
+        //PlayerPrefs.Save();
+        //PlayerPrefs.Save();
     }
 
     void disableButtons()
@@ -231,12 +275,35 @@ public class BattleMoves : MonoBehaviour
     }
     void checkStationary()
     {
-        if (attackName.Contains("Spell"))
+        if (attackName.Contains("Spell") || attackName.Contains("Buff"))
         {
             stationaryAttack = true;
         }
     }
-
+    public int calcAttackValue()
+    {
+        if(isEnemy)
+        {
+            return Mathf.RoundToInt((enemy.GetComponent<PlayerStats>().EattackRating + battleAttack) / 5);
+        }
+        else
+        {
+            return Mathf.RoundToInt((player.GetComponent<PlayerStats>().attackRating + battleAttack) / 5);
+        }
+        return 0;
+    }
+    public int calcDefenceValue()
+    {
+        if (isEnemy)
+        {
+            return Mathf.RoundToInt((player.GetComponent<PlayerStats>().armorRating + player.GetComponent<BattleMoves>().battleDefence) / 7);
+        }
+        else
+        {
+            return Mathf.RoundToInt((enemy.GetComponent<PlayerStats>().EarmorRating + enemy.GetComponent<BattleMoves>().battleDefence) / 7);
+        }
+        return 0;
+    }
     public void SetInt(string KeyName, int Value)
     {
         PlayerPrefs.SetInt(KeyName, Value);
