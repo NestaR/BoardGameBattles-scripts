@@ -14,48 +14,64 @@ public class BattleMoves : MonoBehaviour
     public int battleTurn, playerHP, battleAttack, battleDefence, battleSpeed;
     public Text attackUI, defenceUI;
     // Start is called before the first frame update
-    void Awake()
+    void Start()
     {
-        if(isEnemy)
-        {       
-            enemy = GameObject.FindWithTag("Enemy");
-            player = GameObject.FindWithTag("Player");
-            //battleAttack = enemy.GetComponent<PlayerStats>().EattackRating;
-
-            enemystartPos = enemy.transform.position;
+        if (isEnemy)
+        {
+            enemystartPos = this.transform.position;
+            enemyAttackP = GameObject.Find("EnemyAttackPosition");
             EAttackPos.x = enemyAttackP.transform.position.x;
-            EAttackPos.y = enemy.transform.position.y;
-            EAttackPos.z = enemy.transform.position.z;
+            EAttackPos.y = enemyAttackP.transform.position.y;
+            EAttackPos.z = enemyAttackP.transform.position.z;
         }
         else
         {
-            //battleAttack = PlayerPrefs.GetInt("AttackRating");
-            enemy = GameObject.FindWithTag("Enemy");
-            player = GameObject.FindWithTag("Player");
+            startPos = this.transform.position;
             PAttackPos.x = playerAttackP.transform.position.x;
-            PAttackPos.y = player.transform.position.y;
-            PAttackPos.z = player.transform.position.z;
+            PAttackPos.y = playerAttackP.transform.position.y;
+            PAttackPos.z = playerAttackP.transform.position.z;
 
-            startPos = player.transform.position;
-            
             battack1.onClick.AddListener(chooseAttack1);
             battack2.onClick.AddListener(chooseAttack2);
             battack3.onClick.AddListener(chooseAttack3);
             battack4.onClick.AddListener(chooseAttack4);
         }
     }
-
     // Update is called once per frame
     void Update()
     {
-        //playerHP = PlayerPrefs.GetInt("HealthRating");
+        enemy = GameObject.FindWithTag("Enemy");
+        player = GameObject.FindWithTag("Player");
+        //if (isEnemy)
+        //{
+        //    enemyAttackP = GameObject.Find("EnemyAttackPosition");
+        //    EAttackPos.x = enemyAttackP.transform.position.x;
+        //    EAttackPos.y = enemyAttackP.transform.position.y;
+        //    EAttackPos.z = enemyAttackP.transform.position.z;
+        //}
+        //else
+        //{
+        //    PAttackPos.x = playerAttackP.transform.position.x;
+        //    PAttackPos.y = playerAttackP.transform.position.y;
+        //    PAttackPos.z = playerAttackP.transform.position.z;
+
+        //    battack1.onClick.AddListener(chooseAttack1);
+        //    battack2.onClick.AddListener(chooseAttack2);
+        //    battack3.onClick.AddListener(chooseAttack3);
+        //    battack4.onClick.AddListener(chooseAttack4);
+        //}
+
         battleTurn = PlayerPrefs.GetInt("BattleTurn");
         if(battleTurn == 0 && isEnemy && !attacking)
         {
-            disableButtons();
+            //disableButtons();
             attackName = "SimpleStrike";
             checkStationary();
             playerAttackPosition();
+        }
+        else if(battleTurn == 0 && !isEnemy)
+        {
+            disableButtons();
         }
         if(!isEnemy)
         {//Show buffs the player has
@@ -124,63 +140,7 @@ public class BattleMoves : MonoBehaviour
         attackChosen = true;
         checkStationary();
     }
-    public void SimpleStrike()
-    {
-        if(isEnemy && !moveFinished)
-        {
-            //player.GetComponent<PlayerStats>().currentHealth -= 10;
-            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (10 + calcAttackValue() - calcDefenceValue())));
-        }
-        else if(!isEnemy && !moveFinished)
-        {
-            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (10 + calcAttackValue() - calcDefenceValue());
-        }
-        moveFinished = true;
-    }
-    public void SimpleSpell()
-    {
-        if (isEnemy && !moveFinished)
-        {
-            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (5 + calcAttackValue() - calcDefenceValue())));
-        }
-        else if(!isEnemy && !moveFinished)
-        {
-            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (5 + calcAttackValue() - calcDefenceValue());
-        }
-        moveFinished = true;
-    }
-    public void AttackBuff()
-    {
-        if (isEnemy && !moveFinished)
-        {
-            battleAttack += 15;
-            //battleAttack = enemy.GetComponent<PlayerStats>().EattackRating + battleAttack + 3;
-            //enemy.GetComponent<PlayerStats>().EattackRating += 3;
-        }
-        else if (!isEnemy && !moveFinished)
-        {
-            battleAttack += 15;
-            //PlayerPrefs.SetInt("BattleAttack", battleAttack)
-            //PlayerPrefs.SetInt("AttackRating", (player.GetComponent<PlayerStats>().attackRating + 3));
-        }
-        moveFinished = true;
-    }
-    public void DefenceBuff()
-    {
-        if (isEnemy && !moveFinished)
-        {
-            battleDefence += 15;
-            //battleAttack = enemy.GetComponent<PlayerStats>().EattackRating + battleAttack + 3;
-            //enemy.GetComponent<PlayerStats>().EattackRating += 3;
-        }
-        else if (!isEnemy && !moveFinished)
-        {
-            battleDefence += 15;
-            //PlayerPrefs.SetInt("BattleAttack", battleAttack)
-            //PlayerPrefs.SetInt("AttackRating", (player.GetComponent<PlayerStats>().attackRating + 3));
-        }
-        moveFinished = true;
-    }
+
     public void playerAttackPosition()
     {
         if(isEnemy)
@@ -303,6 +263,168 @@ public class BattleMoves : MonoBehaviour
             return Mathf.RoundToInt((enemy.GetComponent<PlayerStats>().EarmorRating + enemy.GetComponent<BattleMoves>().battleDefence) / 7);
         }
         return 0;
+    }
+
+    public void SimpleStrike()
+    {
+        if (isEnemy && !moveFinished)
+        {
+            //player.GetComponent<PlayerStats>().currentHealth -= 10;
+            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (10 + calcAttackValue() - calcDefenceValue())));
+        }
+        else if (!isEnemy && !moveFinished)
+        {
+            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (10 + calcAttackValue() - calcDefenceValue());
+        }
+        moveFinished = true;
+    }
+    public void SimpleSpell()
+    {
+        if (isEnemy && !moveFinished)
+        {
+            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (5 + calcAttackValue() - calcDefenceValue())));
+        }
+        else if (!isEnemy && !moveFinished)
+        {
+            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (5 + calcAttackValue() - calcDefenceValue());
+        }
+        moveFinished = true;
+    }
+    public void AttackBuff()
+    {
+        if (isEnemy && !moveFinished)
+        {
+            battleAttack += 15;
+            //battleAttack = enemy.GetComponent<PlayerStats>().EattackRating + battleAttack + 3;
+            //enemy.GetComponent<PlayerStats>().EattackRating += 3;
+        }
+        else if (!isEnemy && !moveFinished)
+        {
+            battleAttack += 15;
+            //PlayerPrefs.SetInt("BattleAttack", battleAttack)
+            //PlayerPrefs.SetInt("AttackRating", (player.GetComponent<PlayerStats>().attackRating + 3));
+        }
+        moveFinished = true;
+    }
+    public void DefenceBuff()
+    {
+        if (isEnemy && !moveFinished)
+        {
+            battleDefence += 15;
+            //battleAttack = enemy.GetComponent<PlayerStats>().EattackRating + battleAttack + 3;
+            //enemy.GetComponent<PlayerStats>().EattackRating += 3;
+        }
+        else if (!isEnemy && !moveFinished)
+        {
+            battleDefence += 15;
+            //PlayerPrefs.SetInt("BattleAttack", battleAttack)
+            //PlayerPrefs.SetInt("AttackRating", (player.GetComponent<PlayerStats>().attackRating + 3));
+        }
+        moveFinished = true;
+    }
+    public void FlameStrike()
+    {
+        if (isEnemy && !moveFinished)
+        {
+            //player.GetComponent<PlayerStats>().currentHealth -= 10;
+            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
+        }
+        else if (!isEnemy && !moveFinished)
+        {
+            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
+        }
+        moveFinished = true;
+    }
+    public void ThunderStrike()
+    {
+        if (isEnemy && !moveFinished)
+        {
+            //player.GetComponent<PlayerStats>().currentHealth -= 10;
+            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
+        }
+        else if (!isEnemy && !moveFinished)
+        {
+            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
+        }
+        moveFinished = true;
+    }
+    public void IceStrike()
+    {
+        if (isEnemy && !moveFinished)
+        {
+            //player.GetComponent<PlayerStats>().currentHealth -= 10;
+            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
+        }
+        else if (!isEnemy && !moveFinished)
+        {
+            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
+        }
+        moveFinished = true;
+    }
+    public void HealStrike()
+    {
+        if (isEnemy && !moveFinished)
+        {
+            //player.GetComponent<PlayerStats>().currentHealth -= 10;
+            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
+        }
+        else if (!isEnemy && !moveFinished)
+        {
+            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
+        }
+        moveFinished = true;
+    }
+    public void HeavyStrike()
+    {
+        if (isEnemy && !moveFinished)
+        {
+            //player.GetComponent<PlayerStats>().currentHealth -= 10;
+            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (12 + calcAttackValue())));
+        }
+        else if (!isEnemy && !moveFinished)
+        {
+            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (12 + calcAttackValue());
+        }
+        moveFinished = true;
+    }
+    public void DoubleStrike()
+    {
+        if (isEnemy && !moveFinished)
+        {
+            //player.GetComponent<PlayerStats>().currentHealth -= 10;
+            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (12 + calcAttackValue() - calcDefenceValue())));
+        }
+        else if (!isEnemy && !moveFinished)
+        {
+            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (12 + calcAttackValue() - calcDefenceValue());
+        }
+        moveFinished = true;
+    }
+    public void TripleStrike()
+    {
+        if (isEnemy && !moveFinished)
+        {
+            //player.GetComponent<PlayerStats>().currentHealth -= 10;
+            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (15 + calcAttackValue() - calcDefenceValue())));
+        }
+        else if (!isEnemy && !moveFinished)
+        {
+            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (15 + calcAttackValue() - calcDefenceValue());
+        }
+        moveFinished = true;
+    }
+    public void PoisonStrike()
+    {
+        if (isEnemy && !moveFinished)
+        {
+            //player.GetComponent<PlayerStats>().currentHealth -= 10;
+            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
+        }
+        else if (!isEnemy && !moveFinished)
+        {
+            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
+        }
+        moveFinished = true;
     }
     public void SetInt(string KeyName, int Value)
     {

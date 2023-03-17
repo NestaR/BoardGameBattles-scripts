@@ -9,11 +9,7 @@ public class GameManager : MonoBehaviour
     public string tileColour;
     public GameObject sceneObjects, battleObjects, diceObject, menuCanvas, chestCanvas, shopCanvas, buffCanvas;
     PlayerMovement playerM;
-    void Start()
-    {
-        //PlayerPrefs.DeleteKey("CurrentTile");
-        //tileColour = "";
-    }
+
     void Update()
     {
         
@@ -40,39 +36,7 @@ public class GameManager : MonoBehaviour
             canRoll = true;
             PlayerPrefs.DeleteKey("NextScene");
         }
-        //if(PlayerPrefs.HasKey("CurrentTile"))
-        //{
-        //    tileColour = PlayerPrefs.GetString("CurrentTile");
-        //}
-        //else
-        //{
-        //    tileColour = "";
-        //}
-        //switch (tileColour)
-        //{
-        //    case "Green":
-        //        BattleScene();
-        //        break;
-        //    case "Red":
-        //        BattleScene();
-        //        break;
-        //    case "Yellow":
-        //        ChestScene();
-        //        break;
-        //    case "Blue":
-        //        BuffScene();
-        //        break;
-        //    case "Orange":
-        //        break;
-        //    default:
-        //        PlayerPrefs.DeleteKey("CurrentTile");
-        //        break;
-        //}
-        if (tileColour == "Green")
-        {
-            BattleScene();
-        }
-        else if (tileColour == "Red")
+        if (tileColour.Contains("Green") || tileColour.Contains("Red"))
         {
             BattleScene();
         }
@@ -91,8 +55,6 @@ public class GameManager : MonoBehaviour
     }
     public void UnloadScene()
     {
-        //diceObject = GameObject.Find("AllObjects");
-        //activateAll();
         PlayerPrefs.SetInt("NextScene", 0);
         SceneManager.UnloadSceneAsync(1);
     }
@@ -104,7 +66,6 @@ public class GameManager : MonoBehaviour
     }
     public void OtherScene()
     {
-        //canRoll = true;
         diceObject = GameObject.Find("d6(Clone)");
         GameObject.Destroy(diceObject);
     }

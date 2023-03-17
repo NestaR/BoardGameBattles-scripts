@@ -9,8 +9,8 @@ public class PlayerStats : MonoBehaviour
     public int currentHealth, maxHealth, attackRating, armorRating, speed;
     public int EcurrentHealth, EmaxHealth, EattackRating, EarmorRating, Espeed;
     public Text healthUI, attackUI, armorUI, speedUI, maxHPUI, currentBattleHP, maxBattleHP;
-    public Text EcurrentBattleHP, EmaxBattleHP;
-    void Start()
+    //public Text EcurrentBattleHP, EmaxBattleHP;
+    void Awake()
     {
         //PlayerPrefs.DeleteKey("HealthRating");
         if(!enemy)
@@ -36,14 +36,16 @@ public class PlayerStats : MonoBehaviour
         }
         else
         {
-            EcurrentHealth = 20;
-            EmaxHealth = 20;
-            EattackRating = 5;
-            EarmorRating = 10;
-            Espeed = 10;
+            if (PlayerPrefs.GetString("CurrentTile").Contains("Red"))
+            {
+                EcurrentHealth += 5;
+                EmaxHealth += 5;
+                EattackRating += 5;
+                EarmorRating += 4;
+                //Espeed = 10;
+            }
         }
     }
-
 
     void Update()
     {
@@ -62,17 +64,25 @@ public class PlayerStats : MonoBehaviour
             speedUI.text = speed.ToString();
             if (battleMode)
             {
+                if(currentHealth <= 0)
+                {
+                    currentHealth = 0;
+                }
                 currentBattleHP.text = currentHealth.ToString();
                 maxBattleHP.text = maxHealth.ToString();
             }
         }
         else
         {
-            EcurrentBattleHP.text = EcurrentHealth.ToString();
-            EmaxBattleHP.text = EmaxHealth.ToString();
+            if (EcurrentHealth <= 0)
+            {
+                EcurrentHealth = 0;
+            }
+            //EcurrentBattleHP.text = EcurrentHealth.ToString();
+            //EmaxBattleHP.text = EmaxHealth.ToString();
         }
         if(battleMode && EcurrentHealth <= 0 && enemy)
-        {
+        {           
             Destroy(gameObject);
         }
         else if(battleMode && currentHealth <= 0 && !enemy)

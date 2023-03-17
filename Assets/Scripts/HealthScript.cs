@@ -9,27 +9,20 @@ public class HealthScript : MonoBehaviour
     public float playerHP;
     public float maxHP;
     public Slider slider;
-    PlayerStats playerStats;
-    //EnemyStats enemyStats;
-    void Start()
-    {
-        //playerStats = this.GetComponent<PlayerStats>();
-        //playerHP = playerStats.currentHealth;
-        //maxHP = playerStats.maxHealth;
-
-        //slider.value = CalculateHealth();
-    }
+    public PlayerStats playerStats;
 
     void Update()
     {
-        playerStats = this.GetComponent<PlayerStats>();
+        
         if (enemy)
         {
+            playerStats = GameObject.FindWithTag("Enemy").GetComponent<PlayerStats>();
             playerHP = playerStats.EcurrentHealth;
             maxHP = playerStats.EmaxHealth;
         }
         else
         {
+            playerStats = this.GetComponent<PlayerStats>();
             playerHP = playerStats.currentHealth;
             maxHP = playerStats.maxHealth;
         }
@@ -41,6 +34,7 @@ public class HealthScript : MonoBehaviour
         }
         if (playerHP <= 0)
         {
+            playerHP = 0;
             //Destroy(gameObject);
         }
         if (playerHP > maxHP)

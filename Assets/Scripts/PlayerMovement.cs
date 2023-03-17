@@ -87,36 +87,12 @@ public class PlayerMovement : MonoBehaviour
     }
     private void OnTriggerEnter(Collider collision)
     {
-        if (collision.gameObject.tag == "Green")
-        {
-            currentTileColour = "Green";
-        }
-        else if (collision.gameObject.tag == "Red")
-        {
-            currentTileColour = "Red";
-        }
-        else if (collision.gameObject.tag == "Blue")
-        {
-            currentTileColour = "Blue";
-        }
-        else if (collision.gameObject.tag == "Yellow")
-        {
-            currentTileColour = "Yellow";
-        }
-        else if (collision.gameObject.tag == "Orange")
-        {
-            currentTileColour = "Orange";
-        }
-        else if (collision.gameObject.tag == "Black")
-        {
-            currentTileColour = "Black";
-        }
-        else if (collision.gameObject.tag == "Start")
-        {
-            currentTileColour = "";
-        }
+        currentTileColour = collision.gameObject.tag;
     }
-
+    private void OnTriggerExit(Collider collision)
+    {
+        //currentTileColour = "";
+    }
     public void SetInt(string KeyName, int Value)
     {
         PlayerPrefs.SetInt(KeyName, Value);
@@ -129,9 +105,9 @@ public class PlayerMovement : MonoBehaviour
     {
         PlayerPrefs.SetString(KeyName, Value);
     }
-    public void GetString(string KeyName)
+    public string GetString(string KeyName)
     {
-        PlayerPrefs.GetString(KeyName);
+        return PlayerPrefs.GetString(KeyName);
     }
     public bool HasKey(string KeyName)
     {
