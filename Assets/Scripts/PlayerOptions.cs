@@ -21,22 +21,15 @@ public class PlayerOptions : MonoBehaviour
     void Update()
     {
         if (attackName[0] == null)
-        {
+        {//Player always starts with a default attack
             attackName[0] = "Simple Strike";
             attackName[1] = "";
             attackName[2] = "";
             attackName[3] = "";
         }
-        //GameObject[] getButtons;
-        //GameObject[] getButtonsText;
-        //if(getButtons == null)
-        //{
-        //getButtons = GameObject.FindGameObjectsWithTag("AttackButtons");
-        //getButtonsText = GameObject.FindGameObjectsWithTag("AttackText");
+
         attackCanvas = GameObject.Find("AttackBG");
-        //}
-        //else
-        //{
+
         if(attackCanvas != null)
         {
             if (attackCanvas.activeSelf == true)
@@ -44,7 +37,7 @@ public class PlayerOptions : MonoBehaviour
                 getButtons = GameObject.FindGameObjectsWithTag("AttackButtons");
                 getButtonsText = GameObject.FindGameObjectsWithTag("AttackText");
                 for (int i = 0; i < 4; i++)
-                {
+                {//Only show buttons for the attacks that are available
                     if (attackName[i] != "")
                     {
                         getButtons[i].GetComponent<Button>().interactable = true;
@@ -58,8 +51,5 @@ public class PlayerOptions : MonoBehaviour
                 }
             }
         }
-
-
-       //}
     }
 }

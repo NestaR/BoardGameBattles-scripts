@@ -7,9 +7,9 @@ public class EnemyScript : MonoBehaviour
 {
     public int battleTurn;
     bool enemySpawned;
-    public GameObject enemy1, enemy2, enemy3, enemyBoss;
+    public GameObject enemy, enemy1, enemy2, enemy3, enemyBoss;
     BattleMoves battleMoves;
-    PlayerStats playerStats;
+    PlayerStats enemyStats;
     public Text EcurrentBattleHP, EmaxBattleHP;
     // Start is called before the first frame update
     void Start()
@@ -21,17 +21,16 @@ public class EnemyScript : MonoBehaviour
     void Update()
     {
         if(!enemySpawned)
-        {
+        {//Spawn an enemy depending on which part of the map was reached
             spawnEnemy();
             
         }
-        playerStats = GameObject.FindWithTag("Enemy").GetComponent<PlayerStats>();
-        EcurrentBattleHP.text = playerStats.EcurrentHealth.ToString();
-        EmaxBattleHP.text = playerStats.EmaxHealth.ToString();
-
-        if (battleTurn == 0)
-        {
-
+        enemy = GameObject.FindWithTag("Enemy");
+        if(enemy != null)
+        {//Set the enemy's ui text
+            enemyStats = enemy.GetComponent<PlayerStats>();
+            EcurrentBattleHP.text = enemyStats.EcurrentHealth.ToString();
+            EmaxBattleHP.text = enemyStats.EmaxHealth.ToString();
         }
     }
     public void spawnEnemy()

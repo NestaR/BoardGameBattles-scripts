@@ -7,67 +7,106 @@ public class GameManager : MonoBehaviour
 {
     public bool canRoll, mouseEnabled;
     public string tileColour;
-    public GameObject sceneObjects, battleObjects, diceObject, menuCanvas, chestCanvas, shopCanvas, buffCanvas;
+    public GameObject player, sceneObjects, battleObjects, diceObject, menuCanvas, chestCanvas, shopCanvas, buffCanvas;
     PlayerMovement playerM;
-
-    void Update()
+    void Start()
     {
-        
-        if (Input.GetKeyDown("m") && !menuCanvas.activeSelf)
+        playerM = player.GetComponent<PlayerMovement>();
+    }
+    void Update()
+    {      
+        if (Input.GetKeyDown("m") && !menuCanvas.activeSelf && this.GetComponent<TransitionScene>().animationFinished)
         {//Open menu panel
             menuCanvas.SetActive(true);
             Time.timeScale = 0;
         }
         else if (Input.GetKeyDown("m") && menuCanvas.activeSelf)
-        {
+        {//Close menu panel
             menuCanvas.SetActive(false);
             Time.timeScale = 1;
         }
-        if (Input.GetMouseButtonUp(1))
+        if (Input.GetMouseButtonUp(1) && canRoll)
         {
-            if(canRoll)
-            {
-                canRoll = false;
-            }
+            canRoll = false;
         }
         if(PlayerPrefs.HasKey("NextScene") && PlayerPrefs.GetInt("NextScene") == 0)
         {
-            activateAll();
-            canRoll = true;
-            PlayerPrefs.DeleteKey("NextScene");
+            if (this.GetComponent<TransitionScene>().animationFinished)
+            {//Show the main scene
+                SceneManager.UnloadSceneAsync("BattleScene");
+                activateAll();
+                canRoll = true;
+                PlayerPrefs.DeleteKey("NextScene");
+            }
+            else
+            {//Start the transition into the scene
+                this.GetComponent<TransitionScene>().animateInScene();
+            }
+        }
+        else if (PlayerPrefs.HasKey("NextScene") && PlayerPrefs.GetInt("NextScene") == 2)
+        {
+            if (this.GetComponent<TransitionScene>().animationFinished)
+            {//Show the main scene
+                SceneManager.UnloadSceneAsync("BattleScene");
+                activateAll();
+                canRoll = true;
+                playerM.endReached = true;
+                playerM.defeated = true;
+                PlayerPrefs.DeleteKey("NextScene");
+            }
+            else
+            {//Start the transition into the scene
+                this.GetComponent<TransitionScene>().animateInScene();
+            }
         }
         if (tileColour.Contains("Green") || tileColour.Contains("Red"))
-        {
-            BattleScene();
+        {//Start the scene transition animation and open the battle scene
+            if (this.GetComponent<TransitionScene>().animationFinished)
+            {
+                BattleScene();
+            }
+            else
+            {
+                this.GetComponent<TransitionScene>().animateInScene();
+            }
+            
         }
         else if (tileColour == "Yellow")
-        {
+        {//Player can add a new attack to their moveset
             ChestScene();
         }
         else if (tileColour == "Blue")
-        {
+        {//Player can receive a permament buff
             BuffScene();
         }
         else if (tileColour == "Black")
-        {
-            BattleScene();
+        {//Start the scene transition animation and open the boss battle scene  
+            if (this.GetComponent<TransitionScene>().animationFinished)
+            {
+                BattleScene();
+            }
+            else
+            {
+
+                this.GetComponent<TransitionScene>().animateInScene();
+            }
+        }
+        else if (tileColour == "Start")
+        {//Start the scene transition animation and open the boss battle scene  
+            canRoll = true;
         }
     }
     public void UnloadScene()
-    {
+    {//Unload the additive scene
         PlayerPrefs.SetInt("NextScene", 0);
         SceneManager.UnloadSceneAsync(1);
     }
     public void BattleScene()
     {
-        deactivateAll();
         tileColour = "";
+        deactivateAll();
+        this.GetComponent<TransitionScene>().resetPositions();    
         SceneManager.LoadScene("BattleScene", LoadSceneMode.Additive);
-    }
-    public void OtherScene()
-    {
-        diceObject = GameObject.Find("d6(Clone)");
-        GameObject.Destroy(diceObject);
     }
     public void ChestScene()
     {
@@ -93,6 +132,8 @@ public class GameManager : MonoBehaviour
     {
         sceneObjects.SetActive(true);
         battleObjects.SetActive(false);
+        this.GetComponent<TransitionScene>().resetPositions();
+        this.GetComponent<TransitionScene>().animateOutScene();
     }
     public void deleteAllKeys()
     {

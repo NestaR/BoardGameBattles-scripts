@@ -44,10 +44,10 @@ public class AppDemo : MonoBehaviour {
 	private GameObject galleryDieObject = null;
 
 	// handle drag rotating the die in the gallery
-    private bool dragging = false;
-    private Vector2 dragStart;
-    private Vector3 dragStartAngle;
-    private Vector3 dragLastAngle;
+    //private bool dragging = false;
+    //private Vector2 dragStart;
+    //private Vector3 dragStartAngle;
+    //private Vector3 dragLastAngle;
 	
 	// rectangle GUI area's 
 	private Rect rectGallerySelectBox;
@@ -55,7 +55,7 @@ public class AppDemo : MonoBehaviour {
 	private Rect rectModeSelect;
 
     // GUI gallery die selector texture
-    private Texture txSelector = null;
+    //private Texture txSelector = null;
     // Use this for initialization
     void Start () {		
 		// store/cache mode assiociated camera positions
@@ -251,7 +251,7 @@ public class AppDemo : MonoBehaviour {
   //      else
         if (rollDice && Input.GetMouseButtonDown(Dice.MOUSE_RIGHT_BUTTON) && !PointInRect(GuiMousePosition(), rectModeSelect))
         {
-            // right mouse button clicked so roll 8 dice of dieType 'gallery die'
+            // right mouse button clicked so roll a dice of dieType 'gallery die'
             Dice.Clear();
             string[] a = galleryDie.Split('-');
             Dice.Roll("1" + a[0], galleryDie, spawnPoint.transform.position, Force());

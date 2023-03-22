@@ -20,7 +20,7 @@ public class PlayerMovement : MonoBehaviour
         startPos = transform.position;
         tilePositions = new GameObject[numTiles];
         for (int i = 0; i < numTiles; i++)
-        {
+        {//Store the position of all the tiles in an array for traversing the map
             tilePositions[i] = GameObject.Find("Tile (" + i + ")");
         }
     }
@@ -31,30 +31,31 @@ public class PlayerMovement : MonoBehaviour
         if(PlayerPrefs.HasKey(PlayerDiceRoll) && !movingPlayer)
         {
             moveAmount = PlayerPrefs.GetInt(PlayerDiceRoll);
-
+            //Move player by amount rolled
             FindNextPosition();
             counter += 1;
         }
+
         if(endReached && defeated)
+        {//Being defeated brings you back to the start
+            playerLost();
+        }
+        else if(defeated)
         {
-            player.transform.position = Vector3.Lerp(player.transform.position, startPos, 1f);
-            currentTileNumber = 0;
-            defeated = false;
-            endReached = false;
+            playerLost();       
         }
         if (player.transform.position == nextPos)
-        {
-            
+        {         
             movingPlayer = false;
             if (counter == moveAmount)
-            {
+            {//Stop moving when reached the correct amount
                 finishedMoving = true;
                 PlayerPrefs.DeleteKey(PlayerDiceRoll);
                 PlayerPrefs.SetString("CurrentTile", currentTileColour);
-                //PlayerPrefs.SetInt(FinishedRolling, 2);
                 counter = 0;
                 gameManager.GetComponent<GameManager>().canRoll = true;
                 gameManager.GetComponent<GameManager>().tileColour = currentTileColour;
+                gameManager.GetComponent<GameManager>().GetComponent<TransitionScene>().resetPositions();
             }
         }
         else if (movingPlayer)
@@ -65,15 +66,21 @@ public class PlayerMovement : MonoBehaviour
         {
             gameManager.GetComponent<GameManager>().canRoll = false;
         }
+        if (player.transform.position == startPos)
+        {
+            defeated = false;
+            endReached = false;
+            //gameManager.GetComponent<GameManager>().canRoll = true;
+        }
     }
     void FindNextPosition()
-    {
+    {//Move the player tile by tile by the amount rolled on the dice
         PlayerPrefs.DeleteKey("CurrentTile");
         movingPlayer = true;
         finishedMoving = false;
         
         if (currentTileNumber >= (numTiles - 1))
-        {
+        {//If the player rolls past the last tile stop them at the end
             nextPos = new Vector3(tilePositions[numTiles - 1].transform.position.x, 0.25f, tilePositions[numTiles - 1].transform.position.z);
             endReached = true;
             gameManager.GetComponent<GameManager>().canRoll = false;
@@ -84,6 +91,14 @@ public class PlayerMovement : MonoBehaviour
             nextPos = new Vector3(tilePositions[currentTileNumber].transform.position.x, 0.25f, tilePositions[currentTileNumber].transform.position.z);
             endReached = false;
         }
+    }
+
+    public void playerLost()
+    {
+        player.transform.position = startPos;
+        currentTileNumber = 0;
+        PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("MaxHealthRating"));
+        gameManager.GetComponent<GameManager>().canRoll = true;
     }
     private void OnTriggerEnter(Collider collision)
     {

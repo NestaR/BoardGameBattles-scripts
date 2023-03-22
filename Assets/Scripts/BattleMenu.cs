@@ -7,29 +7,19 @@ using UnityEngine.EventSystems;
 public class BattleMenu : MonoBehaviour
 {
     public GameObject attackButton, playerAttackButton1, playerAttacksPanel, menuPanel;   
-    // Start is called before the first frame update
+
     void Start()
     {
         EventSystem.current.SetSelectedGameObject(attackButton);
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-    public void checkLog()
-    {
-        Debug.Log("Check pressed");
-    }
     public void showPlayerAttacks()
-    {
+    {//Show the players available attacks in battle
         playerAttacksPanel.SetActive(true);
         menuPanel.SetActive(false);
         EventSystem.current.SetSelectedGameObject(playerAttackButton1);
     }
     public void showBattleMenu()
-    {
+    {//Open players battle menu for attacking and using items
         playerAttacksPanel.SetActive(false);
         menuPanel.SetActive(true);
         EventSystem.current.SetSelectedGameObject(attackButton);

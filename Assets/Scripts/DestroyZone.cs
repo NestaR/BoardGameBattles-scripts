@@ -14,7 +14,7 @@ public class DestroyZone : MonoBehaviour
     void Update()
     {
         if(fixDice)
-        {
+        {//If the dice gets stuck it gets reset
             dice = GameObject.Find("d6(Clone)");
             dice.transform.position = Vector3.Lerp(dice.transform.position, fixedPosition, 1f);
             fixDice = false;
@@ -23,7 +23,7 @@ public class DestroyZone : MonoBehaviour
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Dice"))
-        {
+        {//Reposition the dice
             Debug.Log("Fix Dice");
             fixDice = true;
         }

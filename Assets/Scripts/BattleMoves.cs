@@ -1,174 +1,313 @@
+
 using System.Collections;
 using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
+public enum BattleState { START, PLAYERTURN, ENEMYTURN, WIN, LOST }
 
 public class BattleMoves : MonoBehaviour
 {
-    public GameObject player, enemy, playerAttackP, enemyAttackP;
+    private BattleState battleState;
+    public GameObject player, enemy, playerAttackP, enemyAttackP, battleCanvas;
     public Vector3 startPos, enemystartPos, PAttackPos, EAttackPos;
-    public bool attackChosen, attackReady, isEnemy, attacking, turnFinished;
-    bool attack1, attack2, attack3, attack4, moveFinished, stationaryAttack;
+    public bool attackChosen, attackReady, isEnemy, moveSet1, moveSet2, moveSet3, moveSetBoss, firstTurn, turnFinished = false;
+    bool attacking, attack1, attack2, attack3, attack4, moveFinished; 
+    bool stationaryAttack;
     public Button battack1, battack2, battack3, battack4, backButton;
     public string attackName;
-    public int battleTurn, playerHP, battleAttack, battleDefence, battleSpeed;
-    public Text attackUI, defenceUI;
-    // Start is called before the first frame update
+    public int battleTurn, playerHP, battleSpeed;
+    public Text attackUI, defenceUI, turnDescription;
+    int counter;
+    public bool speedCheck, hasClicked;
+    PlayerStats playerStats, enemyStats;
+    public GameManager transitionScene;
     void Start()
     {
-        if (isEnemy)
+        if(!PlayerPrefs.HasKey("PlayerRun"))
         {
-            enemystartPos = this.transform.position;
-            enemyAttackP = GameObject.Find("EnemyAttackPosition");
-            EAttackPos.x = enemyAttackP.transform.position.x;
-            EAttackPos.y = enemyAttackP.transform.position.y;
-            EAttackPos.z = enemyAttackP.transform.position.z;
+            PlayerPrefs.SetInt("PlayerRun", 0);
+        }
+        startPos = this.transform.position;
+        PAttackPos.x = playerAttackP.transform.position.x;
+        PAttackPos.y = playerAttackP.transform.position.y;
+        PAttackPos.z = playerAttackP.transform.position.z;
+        //Buttons for storing the players chosen attack
+        battack1.onClick.AddListener(chooseAttack1);
+        battack2.onClick.AddListener(chooseAttack2);
+        battack3.onClick.AddListener(chooseAttack3);
+        battack4.onClick.AddListener(chooseAttack4);
+        battleState = BattleState.START;
+        StartCoroutine(BeginBattle());
+    }
+    IEnumerator BeginBattle()
+    {//Find the player and enemy at the start of the battle
+        //yield return new WaitForSeconds(2);
+        enemy = GameObject.FindWithTag("Enemy");
+        enemyStats = enemy.GetComponent<PlayerStats>();
+        player = GameObject.FindWithTag("Player");
+        playerStats = player.GetComponent<PlayerStats>();
+        enemystartPos = enemy.transform.position;
+
+        if (!speedCheck && enemy != null && enemyStats.Espeed > playerStats.speed)
+        {//If the enemy is faster they attack first           
+            disableButtons();
+            yield return new WaitForSeconds(1);
+            battleState = BattleState.ENEMYTURN;
+            yield return StartCoroutine(EnemyTurn());
+        }
+        else if (!speedCheck && enemy != null && enemyStats.Espeed <= playerStats.speed)
+        {//If the player is faster they attack first
+            yield return new WaitForSeconds(1);
+            battleState = BattleState.PLAYERTURN;
+            yield return StartCoroutine(PlayerTurn());
+        }
+    }
+    IEnumerator PlayerTurn()
+    {
+        speedCheck = true;
+        turnDescription.text = "Player's turn";
+        // probably display some message 
+        // stating it's player's turn here
+        yield return new WaitForSeconds(0);
+        turnFinished = false;
+        // release the blockade on clicking 
+        // so that player can click on 'attack' button    
+        hasClicked = false;
+        enableButtons();
+    }
+
+    void Update()
+    {
+        //Find the enemies attack position
+        enemyAttackP = GameObject.Find("EnemyAttackPosition");
+        EAttackPos.x = enemyAttackP.transform.position.x;
+        EAttackPos.y = enemyAttackP.transform.position.y;
+        EAttackPos.z = enemyAttackP.transform.position.z;
+    }
+    IEnumerator PlayerAttack()
+    {//Perform the players chosen attack
+        disableButtons();
+        checkStationary();
+        while(!attackReady)
+        {
+            playerAttackPosition(); 
+            yield return null;
+        }
+
+        turnDescription.text = "Player used " + attackName + "!";
+        attackName = attackName.Replace(" ", "");
+        Invoke(attackName, 0f);
+
+        yield return new WaitForSeconds(1);
+        if (enemyStats.EcurrentHealth <= 0)
+        {
+            // if the enemy health drops to 0 
+            // we won!
+            battleState = BattleState.WIN;
+            yield return StartCoroutine(EndBattle());
         }
         else
         {
-            startPos = this.transform.position;
-            PAttackPos.x = playerAttackP.transform.position.x;
-            PAttackPos.y = playerAttackP.transform.position.y;
-            PAttackPos.z = playerAttackP.transform.position.z;
+            // if the enemy health is still
+            // above 0 when the turn finishes
+            // it's enemy's turn!
+            while(!turnFinished)
+            {
+                playerStartPosition();
+                yield return null;
+            }
+            
+            battleState = BattleState.ENEMYTURN;
+            yield return StartCoroutine(EnemyTurn());
+        }
 
-            battack1.onClick.AddListener(chooseAttack1);
-            battack2.onClick.AddListener(chooseAttack2);
-            battack3.onClick.AddListener(chooseAttack3);
-            battack4.onClick.AddListener(chooseAttack4);
+    }
+    IEnumerator EnemyTurn()
+    {//Pick a random attack from the enemies moveset
+        turnFinished = false;
+        speedCheck = true;
+        turnDescription.text = "Enemy's turn";
+        while (attackName == null || attackName == "")
+        {
+            string[] moveSet = new string[4];
+            string[] bossMoveSet = new string[4];
+            if (enemyStats.moveSet1)
+            {
+                moveSet[0] = "Simple Strike";
+                moveSet[1] = "Double Strike";
+                moveSet[2] = "Attack Buff";
+                moveSet[3] = "Simple Strike";
+            }
+            else if (enemyStats.moveSet2)
+            {
+                moveSet[0] = "Simple Strike";
+                moveSet[1] = "Thunder Strike";
+                moveSet[2] = "Double Strike";
+                moveSet[3] = "Simple Strike";
+            }
+            else if (enemyStats.moveSet3)
+            {
+                moveSet[0] = "Simple Strike";
+                moveSet[1] = "Heavy Strike";
+                moveSet[2] = "Defence Buff";
+                moveSet[3] = "Simple Strike";
+            }
+            else if (enemyStats.moveSetBoss)
+            {
+                moveSet[0] = "Simple Strike";
+                moveSet[1] = "Heal Strike";
+                moveSet[2] = "Poison Strike";
+                moveSet[3] = "Triple Strike";
+            }
+            attackName = moveSet[Random.Range(0, 4)];
+            yield return null;
+        }
+        checkStationary();
+        while (!attackReady)
+        {
+            playerAttackPosition();
+            yield return null;
+        }
+
+        turnDescription.text = "Enemy used " + attackName + "!";
+        attackName = attackName.Replace(" ", "");
+        Invoke(attackName, 0f);
+        yield return new WaitForSeconds(1);
+
+        if (playerStats.currentHealth <= 0)
+        {
+            // if the player health drops to 0 
+            // we have lost the battle...
+            battleState = BattleState.LOST;
+            yield return StartCoroutine(EndBattle());
+        }
+        else
+        {
+            // if the player health is still
+            // above 0 when the turn finishes
+            // it's our turn again!
+            while (!turnFinished)
+            {
+                playerStartPosition();
+                yield return null;
+            }
+            battleState = BattleState.PLAYERTURN;
+            yield return StartCoroutine(PlayerTurn());
         }
     }
-    // Update is called once per frame
-    void Update()
+    IEnumerator EndBattle()
     {
-        enemy = GameObject.FindWithTag("Enemy");
-        player = GameObject.FindWithTag("Player");
-        //if (isEnemy)
-        //{
-        //    enemyAttackP = GameObject.Find("EnemyAttackPosition");
-        //    EAttackPos.x = enemyAttackP.transform.position.x;
-        //    EAttackPos.y = enemyAttackP.transform.position.y;
-        //    EAttackPos.z = enemyAttackP.transform.position.z;
-        //}
-        //else
-        //{
-        //    PAttackPos.x = playerAttackP.transform.position.x;
-        //    PAttackPos.y = playerAttackP.transform.position.y;
-        //    PAttackPos.z = playerAttackP.transform.position.z;
+        transitionScene.GetComponent<TransitionScene>().resetPositions();
+        // check if we won
+        if (battleState == BattleState.WIN)
+        {
+            // you may wish to display some kind
+            // of message or play a victory fanfare
+            // here
+            Destroy(enemy.gameObject);
+            BuffAllStats();
+            yield return new WaitForSeconds(1);
+            PlayerPrefs.SetInt("NextScene", 0);
 
-        //    battack1.onClick.AddListener(chooseAttack1);
-        //    battack2.onClick.AddListener(chooseAttack2);
-        //    battack3.onClick.AddListener(chooseAttack3);
-        //    battack4.onClick.AddListener(chooseAttack4);
-        //}
-
-        battleTurn = PlayerPrefs.GetInt("BattleTurn");
-        if(battleTurn == 0 && isEnemy && !attacking)
-        {
-            //disableButtons();
-            attackName = "SimpleStrike";
-            checkStationary();
-            playerAttackPosition();
         }
-        else if(battleTurn == 0 && !isEnemy)
+        // otherwise check if we lost
+        // You probably want to display some kind of
+        // 'Game Over' screen to communicate to the 
+        // player that the game is lost
+        else if (battleState == BattleState.LOST)
         {
-            disableButtons();
-        }
-        if(!isEnemy)
-        {//Show buffs the player has
-            attackUI.text = "+ " + "(" + battleAttack.ToString() + ")";
-            defenceUI.text = "+ " + "(" + battleDefence.ToString() + ")";
-        }
-        if(battleTurn == 1 && !isEnemy && turnFinished)
-        {
-            enableButtons();
-        }
-        if(attackReady)
-        {
-            if(attack1 || attack2 || attack3 || attack4)
+            // you may wish to display some kind
+            // of message or play a sad tune here!
+            
+            yield return new WaitForSeconds(1);
+            if(enemyStats.moveSetBoss)
             {
-                Invoke(attackName, 0.1f);
-                attackReady = false;
-                attackChosen = false;
+                PlayerPrefs.SetInt("PlayerRun", PlayerPrefs.GetInt("PlayerRun") + 1);
             }
-            if (isEnemy)
+            else
             {
-                Invoke(attackName, 0f);
-                attackReady = false;
+                Destroy(enemy.gameObject);
             }
-        }
-        else if (attackChosen)
-        {
-            turnFinished = false;
-            disableButtons();
-            playerAttackPosition();
-        }
-        else if(moveFinished)
-        {
-            Invoke("playerStartPosition", 0.5f);
-            //playerStartPosition();
+            PlayerPrefs.SetInt("NextScene", 2);
+            //SceneManager.UnloadSceneAsync(1);
         }
     }
     public void chooseAttack1()
-    {
-        attackName = battack1.GetComponentInChildren<Text>().text;
-        attackName = attackName.Replace(" ", "");
-        attack1 = true;
-        attackChosen = true;
-        checkStationary();
+    {//Check which move was pressed
+        if (!hasClicked)
+        {
+            attackName = battack1.GetComponentInChildren<Text>().text;
+            StartCoroutine(PlayerAttack());
+
+            // block user from repeatedly 
+            // pressing attack button  
+            hasClicked = true;
+        }
     }
     public void chooseAttack2()
     {
-        attackName = battack2.GetComponentInChildren<Text>().text;
-        attackName = attackName.Replace(" ", "");
-        attack2 = true;
-        attackChosen = true;
-        checkStationary();
+        if (!hasClicked)
+        {
+            attackName = battack2.GetComponentInChildren<Text>().text;
+            StartCoroutine(PlayerAttack());
+
+            // block user from repeatedly 
+            // pressing attack button  
+            hasClicked = true;
+        }
     }
     public void chooseAttack3()
     {
-        attackName = battack3.GetComponentInChildren<Text>().text;
-        attackName = attackName.Replace(" ", "");
-        attack3 = true;
-        attackChosen = true;
-        checkStationary();
+        if (!hasClicked)
+        {
+            attackName = battack3.GetComponentInChildren<Text>().text;
+            StartCoroutine(PlayerAttack());
+
+            // block user from repeatedly 
+            // pressing attack button  
+            hasClicked = true;
+        }
     }
     public void chooseAttack4()
     {
-        attackName = battack4.GetComponentInChildren<Text>().text;
-        attackName = attackName.Replace(" ", "");
-        attack4 = true;
-        attackChosen = true;
-        checkStationary();
+        if (!hasClicked)
+        {
+            attackName = battack4.GetComponentInChildren<Text>().text;
+            StartCoroutine(PlayerAttack());
+
+            // block user from repeatedly 
+            // pressing attack button  
+            hasClicked = true;
+        }
     }
 
     public void playerAttackPosition()
-    {
-        if(isEnemy)
+    {//Move the attacker to their attack position
+        if (battleState == BattleState.PLAYERTURN)
         {
             if (!stationaryAttack)
             {
-                enemy.transform.position = Vector3.MoveTowards(enemy.transform.position, EAttackPos, Time.deltaTime * 4f);
-                // Check if the position of the cube and sphere are approximately equal.
-                if (Vector3.Distance(enemy.transform.position, EAttackPos) < 0.001f)
+                player.transform.position = Vector3.MoveTowards(player.transform.position, PAttackPos, Time.deltaTime * 3f);
+                // Check if the position of the enemy and their attack position are approximately equal.
+                if (Vector3.Distance(player.transform.position, PAttackPos) < 0.001f)
                 {
                     attackReady = true;
-                    attacking = true;
                 }
             }
             else
             {
                 attackReady = true;
-                attacking = true;
             }
-            
         }
-        else
+        else if (battleState == BattleState.ENEMYTURN)
         {
             if (!stationaryAttack)
             {
-                player.transform.position = Vector3.MoveTowards(player.transform.position, PAttackPos, Time.deltaTime * 4f);
-                // Check if the position of the cube and sphere are approximately equal.
-                if (Vector3.Distance(player.transform.position, PAttackPos) < 0.001f)
+                enemy.transform.position = Vector3.MoveTowards(enemy.transform.position, EAttackPos, Time.deltaTime * 3f);
+                // Check if the position of the enemy and their attack position are approximately equal.
+                if (Vector3.Distance(enemy.transform.position, EAttackPos) < 0.001f)
                 {
                     attackReady = true;
                 }
@@ -180,251 +319,223 @@ public class BattleMoves : MonoBehaviour
         }
     }
     public void playerStartPosition()
-    {
-        if(isEnemy)
-        {
-            enemy.transform.position = Vector3.MoveTowards(enemy.transform.position, enemystartPos, Time.deltaTime * 3f);
-            if (Vector3.Distance(enemy.transform.position, enemystartPos) < 0.001f)
-            {
-                attackReady = false;
-                attackName = "";
-                moveFinished = false;
-                stationaryAttack = false;
-                attacking = false;
-                PlayerPrefs.SetInt("BattleTurn", 1);
-            }
-        }
-        else
+    {//Return the attacker to their starting position
+        stationaryAttack = false;
+        if (battleState == BattleState.PLAYERTURN)
         {
             player.transform.position = Vector3.MoveTowards(player.transform.position, startPos, Time.deltaTime * 3f);
             if (Vector3.Distance(player.transform.position, startPos) < 0.001f)
             {
-                attackReady = false;
-                attackChosen = false;
-                attackName = "";
-                attack1 = false;
-                attack2 = false;
-                attack3 = false;
-                attack4 = false;
-                moveFinished = false;
-                stationaryAttack = false;
                 turnFinished = true;
-                enableButtons();
-                PlayerPrefs.SetInt("BattleTurn", 0);
+                attackName = "";
+                attackReady = false;
             }
         }
-        //PlayerPrefs.Save();
-        //PlayerPrefs.Save();
+        else if (battleState == BattleState.ENEMYTURN)
+        {
+            enemy.transform.position = Vector3.MoveTowards(enemy.transform.position, enemystartPos, Time.deltaTime * 3f);
+            if (Vector3.Distance(enemy.transform.position, enemystartPos) < 0.001f)
+            {
+                turnFinished = true;
+                attackName = "";
+                attackReady = false;
+            }
+        }
     }
 
     void disableButtons()
-    {
-        battack1.enabled = false;
-        battack2.enabled = false;
-        battack3.enabled = false;
-        battack4.enabled = false;    
-        backButton.enabled = false;
+    {//Stop the player from pressing during an attack
+        battleCanvas.SetActive(false);
     }
     void enableButtons()
     {
-        battack1.enabled = true;
-        battack2.enabled = true;
-        battack3.enabled = true;
-        battack4.enabled = true;
-        backButton.enabled = true;
+        battleCanvas.SetActive(true);
     }
     void checkStationary()
-    {
-        if (attackName.Contains("Spell") || attackName.Contains("Buff"))
+    {//If a move that doesn't require movement is used the user will stay in their current position
+        if (attackName.Contains("Strike") || attackName.Contains("Slash") || attackName.Contains("Stab"))
+        {
+            stationaryAttack = false;
+        }
+        else
         {
             stationaryAttack = true;
         }
     }
     public int calcAttackValue()
-    {
-        if(isEnemy)
+    {//Before an attack hits check the user or opponents attack rating
+        if (battleState == BattleState.PLAYERTURN)
         {
-            return Mathf.RoundToInt((enemy.GetComponent<PlayerStats>().EattackRating + battleAttack) / 5);
+            return Mathf.RoundToInt((playerStats.attackRating + playerStats.battleAttack) / 5);
         }
         else
         {
-            return Mathf.RoundToInt((player.GetComponent<PlayerStats>().attackRating + battleAttack) / 5);
+            return Mathf.RoundToInt((enemyStats.EattackRating + enemyStats.battleAttack) / 5);
         }
-        return 0;
     }
     public int calcDefenceValue()
-    {
-        if (isEnemy)
+    {//Before an attack hits check the user or opponents defence rating
+        if (battleState == BattleState.PLAYERTURN)
         {
-            return Mathf.RoundToInt((player.GetComponent<PlayerStats>().armorRating + player.GetComponent<BattleMoves>().battleDefence) / 7);
+            return Mathf.RoundToInt((playerStats.armorRating + playerStats.battleDefence) / 7);
         }
         else
         {
-            return Mathf.RoundToInt((enemy.GetComponent<PlayerStats>().EarmorRating + enemy.GetComponent<BattleMoves>().battleDefence) / 7);
+            return Mathf.RoundToInt((enemyStats.EarmorRating + enemyStats.battleDefence) / 7);
         }
-        return 0;
     }
 
     public void SimpleStrike()
     {
-        if (isEnemy && !moveFinished)
+        if(battleState == BattleState.PLAYERTURN)
         {
-            //player.GetComponent<PlayerStats>().currentHealth -= 10;
-            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (10 + calcAttackValue() - calcDefenceValue())));
+            enemyStats.EcurrentHealth -= (10 + calcAttackValue() - calcDefenceValue());
         }
-        else if (!isEnemy && !moveFinished)
+        else if (battleState == BattleState.ENEMYTURN)
         {
-            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (10 + calcAttackValue() - calcDefenceValue());
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (10 + calcAttackValue() - calcDefenceValue())));
         }
-        moveFinished = true;
     }
     public void SimpleSpell()
     {
-        if (isEnemy && !moveFinished)
+        if(battleState == BattleState.PLAYERTURN)
         {
-            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (5 + calcAttackValue() - calcDefenceValue())));
+            enemyStats.EcurrentHealth -= (10 + calcAttackValue() - calcDefenceValue());
         }
-        else if (!isEnemy && !moveFinished)
+        else if (battleState == BattleState.ENEMYTURN)
         {
-            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (5 + calcAttackValue() - calcDefenceValue());
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (10 + calcAttackValue() - calcDefenceValue())));
         }
-        moveFinished = true;
     }
     public void AttackBuff()
-    {
-        if (isEnemy && !moveFinished)
+    {//Increase users attack during battle
+        if (battleState == BattleState.PLAYERTURN)
         {
-            battleAttack += 15;
-            //battleAttack = enemy.GetComponent<PlayerStats>().EattackRating + battleAttack + 3;
-            //enemy.GetComponent<PlayerStats>().EattackRating += 3;
+            playerStats.battleAttack += 15;
         }
-        else if (!isEnemy && !moveFinished)
+        else if (battleState == BattleState.ENEMYTURN)
         {
-            battleAttack += 15;
-            //PlayerPrefs.SetInt("BattleAttack", battleAttack)
-            //PlayerPrefs.SetInt("AttackRating", (player.GetComponent<PlayerStats>().attackRating + 3));
+            enemyStats.battleAttack += 15;
         }
-        moveFinished = true;
     }
     public void DefenceBuff()
-    {
-        if (isEnemy && !moveFinished)
+    {//Increase users defence during battle
+        if (battleState == BattleState.PLAYERTURN)
         {
-            battleDefence += 15;
-            //battleAttack = enemy.GetComponent<PlayerStats>().EattackRating + battleAttack + 3;
-            //enemy.GetComponent<PlayerStats>().EattackRating += 3;
+            playerStats.battleDefence += 15;
         }
-        else if (!isEnemy && !moveFinished)
+        else if (battleState == BattleState.ENEMYTURN)
         {
-            battleDefence += 15;
-            //PlayerPrefs.SetInt("BattleAttack", battleAttack)
-            //PlayerPrefs.SetInt("AttackRating", (player.GetComponent<PlayerStats>().attackRating + 3));
+            enemyStats.battleDefence += 15;
         }
-        moveFinished = true;
     }
     public void FlameStrike()
-    {
-        if (isEnemy && !moveFinished)
+    {//Increase users attack after attacking
+        if (battleState == BattleState.PLAYERTURN)
         {
-            //player.GetComponent<PlayerStats>().currentHealth -= 10;
-            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
+            enemyStats.EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
+            playerStats.battleAttack += 10;
         }
-        else if (!isEnemy && !moveFinished)
+        else if (battleState == BattleState.ENEMYTURN)
         {
-            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
+            enemyStats.battleAttack += 10;
         }
-        moveFinished = true;
     }
     public void ThunderStrike()
-    {
-        if (isEnemy && !moveFinished)
+    {//If this is the first move used it does additional damage, otherwise does damage based on users speed
+        if (battleState == BattleState.PLAYERTURN)
         {
-            //player.GetComponent<PlayerStats>().currentHealth -= 10;
-            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
+            if(firstTurn)
+            {
+                enemyStats.EcurrentHealth -= (13 + calcAttackValue() - calcDefenceValue());
+            }
+            else
+            {
+                enemyStats.EcurrentHealth -= (9 + calcAttackValue() - calcDefenceValue());
+            }
         }
-        else if (!isEnemy && !moveFinished)
+        else if (battleState == BattleState.ENEMYTURN)
         {
-            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
+            if (firstTurn)
+            {
+                PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (13 + calcAttackValue() - calcDefenceValue())));
+            }
+            else
+            {
+                PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (9 + calcAttackValue() - calcDefenceValue())));
+            }
+            
         }
-        moveFinished = true;
     }
     public void IceStrike()
-    {
-        if (isEnemy && !moveFinished)
+    {//Lower the opponents attack
+        if (battleState == BattleState.PLAYERTURN)
         {
-            //player.GetComponent<PlayerStats>().currentHealth -= 10;
-            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
+            enemyStats.EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
+            enemyStats.battleAttack -= 10;
         }
-        else if (!isEnemy && !moveFinished)
+        else if (battleState == BattleState.ENEMYTURN)
         {
-            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
+            playerStats.battleAttack -= 10;
         }
-        moveFinished = true;
     }
     public void HealStrike()
-    {
-        if (isEnemy && !moveFinished)
+    {//Heal the user for a percentage of the damage dealt
+        if (battleState == BattleState.PLAYERTURN)
         {
-            //player.GetComponent<PlayerStats>().currentHealth -= 10;
-            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
+            enemyStats.EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth + (8 + (calcAttackValue() - calcDefenceValue()) / 2)));
         }
-        else if (!isEnemy && !moveFinished)
+        else if (battleState == BattleState.ENEMYTURN)
         {
-            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
+            enemyStats.EcurrentHealth += (8 + (calcAttackValue() - calcDefenceValue()) / 2);
         }
-        moveFinished = true;
     }
     public void HeavyStrike()
-    {
-        if (isEnemy && !moveFinished)
+    {//Perform a heavy attack
+        if (battleState == BattleState.PLAYERTURN)
         {
-            //player.GetComponent<PlayerStats>().currentHealth -= 10;
-            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (12 + calcAttackValue())));
+            enemyStats.EcurrentHealth -= (12 + calcAttackValue() - calcDefenceValue());
         }
-        else if (!isEnemy && !moveFinished)
+        else if (battleState == BattleState.ENEMYTURN)
         {
-            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (12 + calcAttackValue());
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (12 + calcAttackValue() - calcDefenceValue())));
         }
-        moveFinished = true;
     }
     public void DoubleStrike()
-    {
-        if (isEnemy && !moveFinished)
-        {
-            //player.GetComponent<PlayerStats>().currentHealth -= 10;
-            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (12 + calcAttackValue() - calcDefenceValue())));
-        }
-        else if (!isEnemy && !moveFinished)
-        {
-            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (12 + calcAttackValue() - calcDefenceValue());
-        }
-        moveFinished = true;
+    {//Hit the opponent 2 times
+        Invoke("SimpleStrike", 0f);
+        Invoke("SimpleStrike", 0.5f);   
     }
     public void TripleStrike()
-    {
-        if (isEnemy && !moveFinished)
-        {
-            //player.GetComponent<PlayerStats>().currentHealth -= 10;
-            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (15 + calcAttackValue() - calcDefenceValue())));
-        }
-        else if (!isEnemy && !moveFinished)
-        {
-            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (15 + calcAttackValue() - calcDefenceValue());
-        }
-        moveFinished = true;
+    {//Hit the opponent 3 times
+        Invoke("SimpleStrike", 0f);
+        Invoke("SimpleStrike", 0.5f);
+        Invoke("SimpleStrike", 1f);
     }
     public void PoisonStrike()
+    {//Lower opponents defence
+        if (battleState == BattleState.PLAYERTURN)
+        {
+            enemyStats.EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
+            enemyStats.battleDefence -= 10;
+        }
+        else if (battleState == BattleState.ENEMYTURN)
+        {
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
+            playerStats.battleDefence -= 10;
+        }
+    }
+    public void BuffAllStats()
     {
-        if (isEnemy && !moveFinished)
-        {
-            //player.GetComponent<PlayerStats>().currentHealth -= 10;
-            PlayerPrefs.SetInt("HealthRating", (player.GetComponent<PlayerStats>().currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
-        }
-        else if (!isEnemy && !moveFinished)
-        {
-            enemy.GetComponent<PlayerStats>().EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
-        }
-        moveFinished = true;
+        PlayerPrefs.SetInt("HealthRating", playerStats.currentHealth + 2);
+        PlayerPrefs.SetInt("MaxHealthRating", playerStats.maxHealth + 2);
+        PlayerPrefs.SetInt("AttackRating", playerStats.attackRating + 2);
+        PlayerPrefs.SetInt("ArmorRating", playerStats.armorRating + 2);
+        PlayerPrefs.Save();
     }
     public void SetInt(string KeyName, int Value)
     {
