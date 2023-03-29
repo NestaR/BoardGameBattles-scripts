@@ -233,7 +233,7 @@ public class Dice : MonoBehaviour {
         {
 			// no dieType specified to cumulate values per dieType ( if they are available )
             if (Count("d6") > 0) v += AsString("d6") + "";
-            if (Count("d10") > 0) v += AsString("d10") + "";
+            //if (Count("d10") > 0) v += AsString("d10") + "";
         }
         else
         {

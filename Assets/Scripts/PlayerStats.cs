@@ -7,10 +7,10 @@ public class PlayerStats : MonoBehaviour
 {
     public bool battleMode, enemy, speedCheck;
     public bool moveSet1, moveSet2, moveSet3, moveSetBoss;
-    public int currentHealth, maxHealth, attackRating, armorRating, speed, battleAttack, battleDefence;
+    public int currentHealth, maxHealth, currentMana, maxMana, attackRating, armorRating, speed, battleAttack, battleDefence, reviveCharges;
     public int EcurrentHealth, EmaxHealth, EattackRating, EarmorRating, Espeed;
-    public Text healthUI, attackUI, armorUI, speedUI, maxHPUI, currentBattleHP, maxBattleHP, battleAttackUI, battleDefenceUI;
-    GameObject enemyObject;
+    public Text healthUI, manaUI, maxMPUI, attackUI, armorUI, speedUI, maxHPUI, currentBattleHP, maxBattleHP, currentBattleMP, maxBattleMP, battleAttackUI, battleDefenceUI, reviveChargesUI, battleReviveChargesUI;
+    public GameObject character1, character2, character3, character4, character5;
     //public Text EcurrentBattleHP, EmaxBattleHP;
     void Awake()
     {
@@ -21,31 +21,30 @@ public class PlayerStats : MonoBehaviour
             {//Get all the players stats            
                 currentHealth = PlayerPrefs.GetInt("HealthRating");
                 maxHealth = PlayerPrefs.GetInt("MaxHealthRating");
+                currentMana = PlayerPrefs.GetInt("ManaRating");
+                maxMana = PlayerPrefs.GetInt("MaxManaRating");
                 attackRating = PlayerPrefs.GetInt("AttackRating");
                 armorRating = PlayerPrefs.GetInt("ArmorRating");
                 speed = PlayerPrefs.GetInt("SpeedRating");
+                reviveCharges = PlayerPrefs.GetInt("ReviveCharges");
+                InstChar();
             }
             else
             {//Set players stats when starting the game
-                PlayerPrefs.SetInt("HealthRating", 30);
-                PlayerPrefs.SetInt("MaxHealthRating", 30);
-                PlayerPrefs.SetInt("AttackRating", 10);
-                PlayerPrefs.SetInt("ArmorRating", 10);
-                PlayerPrefs.SetInt("SpeedRating", 11);
-                PlayerPrefs.Save();
+                SetStats();               
             }
         }
         else
         {
             if (PlayerPrefs.GetString("CurrentTile").Contains("Red"))
             {//Increase the enemies stats if landing on a red tile
-                EcurrentHealth += 5;
-                EmaxHealth += 5;
-                EattackRating += 5;
-                EarmorRating += 4;
-                Espeed += 3;
+                EcurrentHealth += 3;
+                EmaxHealth += 3;
+                EattackRating += 3;
+                EarmorRating += 3;
+                Espeed += 1;
             }
-            if (PlayerPrefs.GetInt("PlayerRun") > 0)
+            if (PlayerPrefs.GetInt("PlayerRun") > 0 && (PlayerPrefs.GetString("CurrentTile").Contains("Green") || PlayerPrefs.GetString("CurrentTile").Contains("Red")))
             {//Increase the enemies stats after completing a run
                 int statIncrease = PlayerPrefs.GetInt("PlayerRun");
                 EcurrentHealth += statIncrease * 2;
@@ -59,41 +58,51 @@ public class PlayerStats : MonoBehaviour
 
     void Update()
     {
+        
         if (!enemy)
-        {            
+        {
+            reviveCharges = PlayerPrefs.GetInt("ReviveCharges");
             currentHealth = PlayerPrefs.GetInt("HealthRating");
             maxHealth = PlayerPrefs.GetInt("MaxHealthRating");
+            currentMana = PlayerPrefs.GetInt("ManaRating");
+            maxMana = PlayerPrefs.GetInt("MaxManaRating");
             attackRating = PlayerPrefs.GetInt("AttackRating");
             armorRating = PlayerPrefs.GetInt("ArmorRating");
             speed = PlayerPrefs.GetInt("SpeedRating");
             //Display the players stats on a canvas
             healthUI.text = currentHealth.ToString();
             maxHPUI.text = maxHealth.ToString();
+            manaUI.text = currentMana.ToString();
+            maxMPUI.text = maxMana.ToString();
             attackUI.text = attackRating.ToString();
             armorUI.text = armorRating.ToString();
             speedUI.text = speed.ToString();
+            reviveChargesUI.text = "x " + reviveCharges.ToString();
             if (battleMode)
             {
                 if(currentHealth <= 0)
                 {
-                    currentHealth = 0;
+                    PlayerPrefs.SetInt("HealthRating", 0);
+                }
+                else if (currentHealth >= maxHealth)
+                {
+                    PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("MaxHealthRating"));
+                }
+                if (currentMana <= 0)
+                {
+                    PlayerPrefs.SetInt("ManaRating", 0);
+                }
+                else if (currentMana >= maxMana)
+                {
+                    PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("MaxManaRating"));
                 }
                 currentBattleHP.text = currentHealth.ToString();
                 maxBattleHP.text = maxHealth.ToString();
+                currentBattleMP.text = currentMana.ToString();
+                maxBattleMP.text = maxMana.ToString();
                 battleAttackUI.text = "+ " + "(" + battleAttack.ToString() + ")";
                 battleDefenceUI.text = "+ " + "(" + battleDefence.ToString() + ")";
-            }
-            //Before the battle starts check their speeds to determine who attacks first
-            enemyObject = GameObject.FindWithTag("Enemy");
-            if (!speedCheck && enemyObject != null && enemyObject.GetComponent<PlayerStats>().Espeed > speed)
-            {
-                PlayerPrefs.SetInt("BattleTurn", 0);
-                speedCheck = true;
-            }
-            else if (!speedCheck && enemyObject != null && enemyObject.GetComponent<PlayerStats>().Espeed <= speed)
-            {
-                PlayerPrefs.SetInt("BattleTurn", 1);
-                speedCheck = true;
+                battleReviveChargesUI.text = "x " + reviveCharges.ToString();
             }
         }
         else
@@ -102,12 +111,110 @@ public class PlayerStats : MonoBehaviour
             {
                 EcurrentHealth = 0;
             }
+            else if (EcurrentHealth >= EmaxHealth)
+            {
+                EcurrentHealth = EmaxHealth;
+            }
         }
     }
     public void EndBattle()
     {
         PlayerPrefs.SetInt("NextScene", 0);
         Destroy(gameObject);
+    }
+    public void SetStats()
+    {
+        Quaternion rotation = Quaternion.Euler(35, 0, 0);
+        Vector3 pos = this.transform.position;
+        if (PlayerPrefs.GetString("CharacterSelected") == "HeroKnight1")
+        {
+            PlayerPrefs.SetInt("HealthRating", 50);
+            PlayerPrefs.SetInt("MaxHealthRating", 50);
+            PlayerPrefs.SetInt("ManaRating", 50);
+            PlayerPrefs.SetInt("MaxManaRating", 50);
+            PlayerPrefs.SetInt("AttackRating", 11);
+            PlayerPrefs.SetInt("ArmorRating", 14);
+            PlayerPrefs.SetInt("SpeedRating", 11);
+            PlayerPrefs.SetInt("ReviveCharges", 0);
+            PlayerPrefs.Save();
+            Instantiate(character1, pos, rotation, this.transform);
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "HeroKnight2")
+        {
+            PlayerPrefs.SetInt("HealthRating", 50);
+            PlayerPrefs.SetInt("MaxHealthRating", 50);
+            PlayerPrefs.SetInt("ManaRating", 50);
+            PlayerPrefs.SetInt("MaxManaRating", 50);
+            PlayerPrefs.SetInt("AttackRating", 9);
+            PlayerPrefs.SetInt("ArmorRating", 21);
+            PlayerPrefs.SetInt("SpeedRating", 10);
+            PlayerPrefs.SetInt("ReviveCharges", 0);
+            PlayerPrefs.Save();
+            Instantiate(character2, pos, rotation, this.transform);
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "MartialHero")
+        {
+            PlayerPrefs.SetInt("HealthRating", 45);
+            PlayerPrefs.SetInt("MaxHealthRating", 45);
+            PlayerPrefs.SetInt("ManaRating", 55);
+            PlayerPrefs.SetInt("MaxManaRating", 55);
+            PlayerPrefs.SetInt("AttackRating", 15);
+            PlayerPrefs.SetInt("ArmorRating", 6);
+            PlayerPrefs.SetInt("SpeedRating", 12);
+            PlayerPrefs.SetInt("ReviveCharges", 0);
+            PlayerPrefs.Save();
+            Instantiate(character3, pos, rotation, this.transform);
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "MedievalWarrior1")
+        {
+            PlayerPrefs.SetInt("HealthRating", 52);
+            PlayerPrefs.SetInt("MaxHealthRating", 52);
+            PlayerPrefs.SetInt("ManaRating", 52);
+            PlayerPrefs.SetInt("MaxManaRating", 52);
+            PlayerPrefs.SetInt("AttackRating", 10);
+            PlayerPrefs.SetInt("ArmorRating", 10);
+            PlayerPrefs.SetInt("SpeedRating", 10);
+            PlayerPrefs.SetInt("ReviveCharges", 0);
+            PlayerPrefs.Save();
+            Instantiate(character4, pos, rotation, this.transform);
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "MedievalWarrior2")
+        {
+            PlayerPrefs.SetInt("HealthRating", 50);
+            PlayerPrefs.SetInt("MaxHealthRating", 50);
+            PlayerPrefs.SetInt("ManaRating", 40);
+            PlayerPrefs.SetInt("MaxManaRating", 40);
+            PlayerPrefs.SetInt("AttackRating", 15);
+            PlayerPrefs.SetInt("ArmorRating", 11);
+            PlayerPrefs.SetInt("SpeedRating", 11);
+            PlayerPrefs.SetInt("ReviveCharges", 0);
+            PlayerPrefs.Save();
+            Instantiate(character5, pos, rotation, this.transform);
+        }
+    }
+    public void InstChar()
+    {
+        if (PlayerPrefs.GetString("CharacterSelected") == "HeroKnight1")
+        {
+            Instantiate(character1, this.transform.position, Quaternion.identity, this.transform);
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "HeroKnight2")
+        {
+            Instantiate(character2, this.transform.position, Quaternion.identity, this.transform);
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "MartialHero")
+        {
+            Instantiate(character3, this.transform.position, Quaternion.identity, this.transform);
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "MedievalWarrior1")
+        {
+            Instantiate(character4, this.transform.position, Quaternion.identity, this.transform);
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "MedievalWarrior2")
+        {
+            Instantiate(character5, this.transform.position, Quaternion.identity, this.transform);
+        }
+
     }
     public void SetInt(string KeyName, int Value)
     {

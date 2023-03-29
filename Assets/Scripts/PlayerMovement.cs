@@ -4,16 +4,17 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public int numTiles, counter = 0, moveAmount, currentTileNumber = 0;
-    public GameObject player, gameManager;
+    public int numTiles, counter = 0, moveAmount, currentTileNumber = 0, flip1, flip2;
+    public GameObject player, gameManager, victoryCanvas;
     public GameObject[] tilePositions;
     public string currentTileColour;
     public int[] destination;
-    Vector3 startPos, nextPos;
-    public bool movingPlayer, finishedMoving, endReached, defeated;
+    public Vector3 startPos, nextPos;
+    public bool movingPlayer, finishedMoving, endReached, defeated, victory;
     public float moveTimer;
+    bool flipped;
     private const string PlayerDiceRoll = "PlayerDiceRoll", FinishedRolling = "FinishedRolling";
-
+    Animator playerAnimator;
     void Start()
     {
         PlayerPrefs.DeleteKey(PlayerDiceRoll);
@@ -23,6 +24,7 @@ public class PlayerMovement : MonoBehaviour
         {//Store the position of all the tiles in an array for traversing the map
             tilePositions[i] = GameObject.Find("Tile (" + i + ")");
         }
+        playerAnimator = this.transform.GetChild(1).GetComponent<Animator>();
     }
 
 
@@ -40,16 +42,21 @@ public class PlayerMovement : MonoBehaviour
         {//Being defeated brings you back to the start
             playerLost();
         }
+        else if(endReached && victory)
+        {
+            playerWin();
+        }
         else if(defeated)
         {
             playerLost();       
         }
-        if (player.transform.position == nextPos)
+        if (Vector3.Distance(player.transform.position, nextPos) < 0.001f)
         {         
             movingPlayer = false;
             if (counter == moveAmount)
             {//Stop moving when reached the correct amount
                 finishedMoving = true;
+                playerAnimator.SetBool("Running", false);
                 PlayerPrefs.DeleteKey(PlayerDiceRoll);
                 PlayerPrefs.SetString("CurrentTile", currentTileColour);
                 counter = 0;
@@ -60,11 +67,27 @@ public class PlayerMovement : MonoBehaviour
         }
         else if (movingPlayer)
         {
-            player.transform.position = Vector3.Lerp(player.transform.position, nextPos, 0.2f);           
+            //player.transform.position = Vector3.Lerp(player.transform.position, nextPos, 0.1f);
+            player.transform.position = Vector3.MoveTowards(player.transform.position, nextPos, Time.deltaTime * 3f);
+            playerAnimator.SetBool("Running", true);
         }
         if(currentTileNumber >= (numTiles - 1))
         {
             gameManager.GetComponent<GameManager>().canRoll = false;
+        }
+        if (currentTileNumber == flip1 && !flipped && !movingPlayer)
+        {
+            Vector3 newScale = transform.localScale;
+            newScale.x *= -1;
+            transform.localScale = newScale;
+            flipped = true;
+        }
+        else if (currentTileNumber == flip2 && !flipped && !movingPlayer)
+        {
+            Vector3 newScale = transform.localScale;
+            newScale.x *= -1;
+            transform.localScale = newScale;
+            flipped = true;
         }
         if (player.transform.position == startPos)
         {
@@ -81,15 +104,17 @@ public class PlayerMovement : MonoBehaviour
         
         if (currentTileNumber >= (numTiles - 1))
         {//If the player rolls past the last tile stop them at the end
-            nextPos = new Vector3(tilePositions[numTiles - 1].transform.position.x, 0.25f, tilePositions[numTiles - 1].transform.position.z);
+            nextPos = new Vector3(tilePositions[numTiles - 1].transform.position.x, 0.3864222f, tilePositions[numTiles - 1].transform.position.z);
             endReached = true;
             gameManager.GetComponent<GameManager>().canRoll = false;
+            //0.6135788
         }
         else
         {
             currentTileNumber += 1;
-            nextPos = new Vector3(tilePositions[currentTileNumber].transform.position.x, 0.25f, tilePositions[currentTileNumber].transform.position.z);
+            nextPos = new Vector3(tilePositions[currentTileNumber].transform.position.x, 0.3864222f, tilePositions[currentTileNumber].transform.position.z);
             endReached = false;
+            flipped = false;
         }
     }
 
@@ -100,9 +125,28 @@ public class PlayerMovement : MonoBehaviour
         PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("MaxHealthRating"));
         gameManager.GetComponent<GameManager>().canRoll = true;
     }
+    public void playerWin()
+    {
+        Debug.Log("PLAYER VICTORY!");
+        player.transform.position = GameObject.Find("Tile (End)").transform.position;
+        currentTileNumber = 0;
+        victoryCanvas.SetActive(true);
+        //PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("MaxHealthRating"));
+        //gameManager.GetComponent<GameManager>().canRoll = true;
+    }
     private void OnTriggerEnter(Collider collision)
     {
-        currentTileColour = collision.gameObject.tag;
+        if (collision.gameObject.tag == "Flip")
+        {
+            //Vector3 newScale = transform.localScale;
+            //newScale.x *= -1;
+            //transform.localScale = newScale;
+            //Debug.Log("Flipped");
+        }
+        else if (collision.gameObject.tag != "Plane")
+        {
+            currentTileColour = collision.gameObject.tag;
+        }
     }
     private void OnTriggerExit(Collider collision)
     {

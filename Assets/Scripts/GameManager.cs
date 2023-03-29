@@ -135,6 +135,10 @@ public class GameManager : MonoBehaviour
         this.GetComponent<TransitionScene>().resetPositions();
         this.GetComponent<TransitionScene>().animateOutScene();
     }
+    public void ExitGame()
+    {
+        SceneManager.LoadScene("StartScene");
+    }
     public void deleteAllKeys()
     {
         PlayerPrefs.DeleteAll();
