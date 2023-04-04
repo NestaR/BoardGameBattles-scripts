@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    public Camera mainCamera;
     public int numTiles, counter = 0, moveAmount, currentTileNumber = 0, flip1, flip2;
-    public GameObject player, gameManager, victoryCanvas;
+    public GameObject player, gameManager, victoryCanvas, cameraRollPosition, cameraPlayerPosition;
     public GameObject[] tilePositions;
     public string currentTileColour;
     public int[] destination;
@@ -37,8 +38,19 @@ public class PlayerMovement : MonoBehaviour
             FindNextPosition();
             counter += 1;
         }
-
-        if(endReached && defeated)
+        else if(!PlayerPrefs.HasKey(PlayerDiceRoll) && finishedMoving)
+        {
+            if(Vector3.Distance(mainCamera.transform.position, cameraRollPosition.transform.position) > 0.001f)
+            {
+                mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, cameraRollPosition.transform.position, Time.deltaTime * 0.7f);
+            }
+        }
+        if (PlayerPrefs.HasKey(PlayerDiceRoll))
+        {
+            //mainCamera.transform.position = cameraPlayerPosition.transform.position;
+            mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, cameraPlayerPosition.transform.position, Time.deltaTime * 3f);
+        }
+        if (endReached && defeated)
         {//Being defeated brings you back to the start
             playerLost();
         }
@@ -124,6 +136,13 @@ public class PlayerMovement : MonoBehaviour
         currentTileNumber = 0;
         PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("MaxHealthRating"));
         gameManager.GetComponent<GameManager>().canRoll = true;
+        if(player.transform.localScale.x < 0)
+        {//Fix the players rotation on respawn
+            Vector3 newScale = transform.localScale;
+            newScale.x *= -1;
+            transform.localScale = newScale;
+            flipped = false;
+        }
     }
     public void playerWin()
     {

@@ -143,6 +143,10 @@ public class GameManager : MonoBehaviour
     {
         PlayerPrefs.DeleteAll();
     }
+    public void CloseMenu()
+    {
+        menuCanvas.SetActive(false);
+    }
     public void SetInt(string KeyName, int Value)
     {
         PlayerPrefs.SetInt(KeyName, Value);

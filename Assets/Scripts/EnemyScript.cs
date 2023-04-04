@@ -42,11 +42,13 @@ public class EnemyScript : MonoBehaviour
         else if (PlayerPrefs.GetString("CurrentTile") == "Green3" || PlayerPrefs.GetString("CurrentTile") == "Red3")
         {
             Instantiate(enemy3, this.transform.position, Quaternion.identity, this.transform);
+            this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y - 0.2f, this.transform.position.z);
             battleManager.GetComponent<BattleMoves>().moveSet3 = true;
         }
         else if (PlayerPrefs.GetString("CurrentTile") == "Black")
         {
             Instantiate(enemyBoss, this.transform.position, Quaternion.identity, this.transform);
+            this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y - 0.1f, this.transform.position.z);
             battleManager.GetComponent<BattleMoves>().moveSetBoss = true;
         }
     }

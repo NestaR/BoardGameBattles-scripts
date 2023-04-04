@@ -18,17 +18,43 @@ public class BattleMoves : MonoBehaviour
     bool playerFlipped, enemyFlipped;
     public Button battack1, battack2, battack3, battack4, backButton;
     public string attackName;
+    string[] moveSet;
     public int battleTurn, playerHP, battleSpeed;
     public Text attackUI, defenceUI, turnDescription;
-    int counter;
+    int counter, numAttAnimations;
     public bool speedCheck, hasClicked, moveFinished, hit, stationaryAttack;
     PlayerStats playerStats, enemyStats;
     public GameManager battleManager;
     void Start()
     {
+        moveSet = new string[4];
         if (!PlayerPrefs.HasKey("PlayerRun"))
         {
             PlayerPrefs.SetInt("PlayerRun", 0);
+        }
+        if (PlayerPrefs.GetString("CharacterSelected") == "HeroKnight1")
+        {
+            numAttAnimations = 3;
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "HeroKnight2")
+        {
+            numAttAnimations = 1;
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "MartialHero")
+        {
+            numAttAnimations = 3;
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "MedievalWarrior1")
+        {
+            numAttAnimations = 3;
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "MedievalWarrior2")
+        {
+            numAttAnimations = 4;
+        }
+        else
+        {
+            Debug.Log("No character");
         }
         startPos = player.transform.position;
         PAttackPos.x = playerAttackP.transform.position.x;
@@ -50,6 +76,36 @@ public class BattleMoves : MonoBehaviour
         battack2.onClick.AddListener(chooseAttack2);
         battack3.onClick.AddListener(chooseAttack3);
         battack4.onClick.AddListener(chooseAttack4);
+
+        if (enemyStats.moveSet1)
+        {
+            moveSet[0] = "Slash";
+            moveSet[1] = "Double Strike";
+            moveSet[2] = "Attack Buff";
+            moveSet[3] = "Slash";
+        }
+        else if (enemyStats.moveSet2)
+        {
+            moveSet[0] = "Slash";
+            moveSet[1] = "Thunder Strike";
+            moveSet[2] = "Thunder Strike";
+            moveSet[3] = "Slash";
+        }
+        else if (enemyStats.moveSet3)
+        {
+            moveSet[0] = "Slash";
+            moveSet[1] = "Heavy Strike";
+            moveSet[2] = "Defence Buff";
+            moveSet[3] = "Slash";
+        }
+        else if (enemyStats.moveSetBoss)
+        {
+            moveSet[0] = "Slash";
+            moveSet[1] = "Soul Siphon";
+            moveSet[2] = "Death Slash";
+            moveSet[3] = "Toxic Slash";
+        }
+
         battleState = BattleState.START;
         
     }
@@ -134,6 +190,49 @@ public class BattleMoves : MonoBehaviour
             enableButtons();
         }
     }
+    public void chooseAttackAnimation(string AttackName)
+    {
+        if(numAttAnimations == 3 && AttackName.Contains("Triple"))
+        {
+            playerAnimator.SetTrigger("Attack1");
+            playerAnimator.SetTrigger("Attack3");
+        }
+        else if (numAttAnimations == 3 && AttackName.Contains("Double"))
+        {
+            playerAnimator.SetTrigger("Attack3");
+        }
+        else if ((numAttAnimations == 3 || numAttAnimations == 4) && AttackName.Contains("Strike"))
+        {
+            playerAnimator.SetTrigger("Attack2");
+        }
+        else if (numAttAnimations == 4 && AttackName.Contains("Heavy") || AttackName.Contains("Strong"))
+        {
+            playerAnimator.SetTrigger("Attack4");
+        }
+        else if (numAttAnimations == 4 && AttackName.Contains("Spear"))
+        {
+            playerAnimator.SetTrigger("Attack3");
+        }
+        else
+        {
+            playerAnimator.SetTrigger("Attack1");
+        }
+    }
+    public void chooseEnemyAttackAnimation(string AttackName)
+    {
+        if (AttackName.Contains("Double"))
+        {
+            enemyAnimator.SetTrigger("Attack3");
+        }
+        else if (AttackName.Contains("Strike") || AttackName.Contains("Heavy") || AttackName.Contains("Strong"))
+        {
+            enemyAnimator.SetTrigger("Attack2");
+        }
+        else
+        {
+            enemyAnimator.SetTrigger("Attack1");
+        }
+    }
     IEnumerator PlayerAttack()
     {//Perform the players chosen attack
         disableButtons();
@@ -146,12 +245,12 @@ public class BattleMoves : MonoBehaviour
         }
         if (!stationaryAttack)
         {
-            playerAnimator.SetTrigger("Attack1");
+            chooseAttackAnimation(attackName);
         }
         turnDescription.text = "Player used " + attackName + "!";
         attackName = attackName.Replace(" ", "");
         
-        yield return new WaitForSeconds(1.3f);
+        yield return new WaitForSeconds(1.5f);
         if (!stationaryAttack)
         {
             enemyAnimator.SetTrigger("Hit");
@@ -159,9 +258,9 @@ public class BattleMoves : MonoBehaviour
         Invoke(attackName, 0f);
 
 
-        if (moveFinished)
+        while (!moveFinished)
         {
-            yield return new WaitForSeconds(1f);
+            yield return null;
         }
         while (!turnFinished)
         {
@@ -178,41 +277,15 @@ public class BattleMoves : MonoBehaviour
         yield return new WaitForSeconds(1);
         turnFinished = false;
         moveFinished = false;
-        attackReady = false;    
+        attackReady = false;  
+        
         while (attackName == null || attackName == "")
         {
-            string[] moveSet = new string[4];
-            if (enemyStats.moveSet1)
-            {
-                moveSet[0] = "Simple Strike";
-                moveSet[1] = "Double Strike";
-                moveSet[2] = "Attack Buff";
-                moveSet[3] = "Simple Strike";
-            }
-            else if (enemyStats.moveSet2)
-            {
-                moveSet[0] = "Simple Strike";
-                moveSet[1] = "Thunder Strike";
-                moveSet[2] = "Double Strike";
-                moveSet[3] = "Simple Strike";
-            }
-            else if (enemyStats.moveSet3)
-            {
-                moveSet[0] = "Simple Strike";
-                moveSet[1] = "Heavy Strike";
-                moveSet[2] = "Defence Buff";
-                moveSet[3] = "Simple Strike";
-            }
-            else if (enemyStats.moveSetBoss)
-            {
-                moveSet[0] = "Simple Strike";
-                moveSet[1] = "Heal Strike";
-                moveSet[2] = "Poison Strike";
-                moveSet[3] = "Triple Strike";
-            }
+
             attackName = moveSet[Random.Range(0, 4)];
             yield return null;
         }
+
         checkStationary();
         while (!attackReady)
         {
@@ -221,30 +294,33 @@ public class BattleMoves : MonoBehaviour
         }
         if(!stationaryAttack)
         {
-            enemyAnimator.SetTrigger("Attack1");
+            chooseEnemyAttackAnimation(attackName);
         }
         else if(stationaryAttack && moveSetBoss)
         {
             enemyAnimator.SetTrigger("Cast");
             yield return new WaitForSeconds(0.3f);
-            spellObject.SetActive(true);
+            enemy.transform.GetChild(0).GetChild(0).gameObject.SetActive(true);
         }
         turnDescription.text = "Enemy used " + attackName + "!";
         attackName = attackName.Replace(" ", "");
         
 
-        yield return new WaitForSeconds(1.3f);
+        yield return new WaitForSeconds(2f);
         if (!stationaryAttack)
         {
+            playerAnimator.SetTrigger("Hit");          
+        }
+        else if (stationaryAttack && moveSetBoss)
+        {
             playerAnimator.SetTrigger("Hit");
+            enemy.transform.GetChild(0).GetChild(0).gameObject.SetActive(false);
         }
         Invoke(attackName, 0f);
 
-
-        if (moveFinished)
+        while (!moveFinished)
         {
-            
-            yield return new WaitForSeconds(1f);
+            yield return null;
         }
 
         while (!turnFinished)
@@ -291,7 +367,7 @@ public class BattleMoves : MonoBehaviour
 
     public bool checkMana(string moveName)
     {
-        if (moveName == "Flame Strike" && playerStats.currentMana < 10)
+        if (moveName == "Fire Slash" && playerStats.currentMana < 10)
         {
             return false;
         }
@@ -299,15 +375,15 @@ public class BattleMoves : MonoBehaviour
         {
             return false;
         }
-        else if (moveName == "Ice Strike" && playerStats.currentMana < 10)
+        else if (moveName == "Freezing Strike" && playerStats.currentMana < 10)
         {
             return false;
         }
-        else if (moveName == "Poison Strike" && playerStats.currentMana < 10)
+        else if (moveName == "Toxic Slash" && playerStats.currentMana < 10)
         {
             return false;
         }
-        else if (moveName == "Double Strike" && playerStats.currentMana < 7)
+        else if (moveName == "Double Strike" && playerStats.currentMana < 8)
         {
             return false;
         }
@@ -319,7 +395,7 @@ public class BattleMoves : MonoBehaviour
         {
             return false;
         }
-        else if (moveName == "Heal Strike" && playerStats.currentMana < 12)
+        else if (moveName == "Healing Strike" && playerStats.currentMana < 12)
         {
             return false;
         }
@@ -516,7 +592,7 @@ public class BattleMoves : MonoBehaviour
     }
     void checkStationary()
     {//If a move that doesn't require movement is used the user will stay in their current position
-        if (attackName.Contains("Strike") || attackName.Contains("Slash") || attackName.Contains("Stab"))
+        if (attackName.Contains("Strike") || attackName.Contains("Slash") || attackName.Contains("Spear"))
         {
             stationaryAttack = false;
         }
@@ -548,16 +624,32 @@ public class BattleMoves : MonoBehaviour
         }
     }
 
-    public void SimpleStrike()
+    public void Slash()
     {
-        if(battleState == BattleState.PLAYERTURN && !moveFinished)
+        if(battleState == BattleState.PLAYERTURN)
         {
-            enemyStats.EcurrentHealth -= (10 + calcAttackValue() - calcDefenceValue());
+            enemyStats.EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
             moveFinished = true;
         }
-        else if (battleState == BattleState.ENEMYTURN && !moveFinished)
+        else if (battleState == BattleState.ENEMYTURN)
         {
-            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (10 + calcAttackValue() - calcDefenceValue())));
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
+            moveFinished = true;
+        }
+    }
+    public void SpearThrust()
+    {
+        if (battleState == BattleState.PLAYERTURN)
+        {
+            int critChance = Random.Range(1, 4);
+            if(critChance == 3)
+            {//This move has a random chance of dealing extra damage
+                enemyStats.EcurrentHealth -= (12 + calcAttackValue() - calcDefenceValue());
+            }
+            else
+            {
+                enemyStats.EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
+            }
             moveFinished = true;
         }
     }
@@ -565,12 +657,13 @@ public class BattleMoves : MonoBehaviour
     {
         if(battleState == BattleState.PLAYERTURN)
         {
-            enemyStats.EcurrentHealth -= (10 + calcAttackValue() - calcDefenceValue());
+            enemyStats.EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
         }
         else if (battleState == BattleState.ENEMYTURN)
         {
-            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (10 + calcAttackValue() - calcDefenceValue())));
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
         }
+        moveFinished = true;
     }
     public void AttackBuff()
     {//Increase users attack during battle
@@ -583,6 +676,7 @@ public class BattleMoves : MonoBehaviour
         {
             enemyStats.battleAttack += 15;
         }
+        moveFinished = true;
     }
     public void DefenceBuff()
     {//Increase users defence during battle
@@ -595,8 +689,9 @@ public class BattleMoves : MonoBehaviour
         {
             enemyStats.battleDefence += 15;
         }
+        moveFinished = true;
     }
-    public void FlameStrike()
+    public void FireSlash()
     {//Increase users attack after attacking
         if (battleState == BattleState.PLAYERTURN)
         {
@@ -609,6 +704,7 @@ public class BattleMoves : MonoBehaviour
             PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
             enemyStats.battleAttack += 10;
         }
+        moveFinished = true;
     }
     public void ThunderStrike()
     {//If this is the first move used it does additional damage, otherwise does damage based on users speed
@@ -617,11 +713,11 @@ public class BattleMoves : MonoBehaviour
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 10);
             if (firstTurn)
             {
-                enemyStats.EcurrentHealth -= (13 + calcAttackValue() - calcDefenceValue());
+                enemyStats.EcurrentHealth -= (15 + calcAttackValue() - calcDefenceValue());
             }
             else
             {
-                enemyStats.EcurrentHealth -= (9 + calcAttackValue() - calcDefenceValue());
+                enemyStats.EcurrentHealth -= (10 + calcAttackValue() - calcDefenceValue());
             }
 
         }
@@ -629,110 +725,116 @@ public class BattleMoves : MonoBehaviour
         {
             if (firstTurn)
             {
-                PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (13 + calcAttackValue() - calcDefenceValue())));
+                PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (15 + calcAttackValue() - calcDefenceValue())));
             }
             else
             {
-                PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (9 + calcAttackValue() - calcDefenceValue())));
+                PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (10 + calcAttackValue() - calcDefenceValue())));
             }
             
         }
+        moveFinished = true;
     }
-    public void IceStrike()
+    public void FreezingStrike()
     {//Lower the opponents attack
         if (battleState == BattleState.PLAYERTURN)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 10);
-            enemyStats.EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
+            enemyStats.EcurrentHealth -= (9 + calcAttackValue() - calcDefenceValue());
             enemyStats.battleAttack -= 10;
         }
         else if (battleState == BattleState.ENEMYTURN)
         {
-            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (9 + calcAttackValue() - calcDefenceValue())));
             playerStats.battleAttack -= 10;
         }
+        moveFinished = true;
     }
-    public void HealStrike()
+    public void HealingStrike()
     {//Heal the user for a percentage of the damage dealt
         if (battleState == BattleState.PLAYERTURN)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 12);
-            enemyStats.EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
-            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth + (8 + (calcAttackValue() - calcDefenceValue()) / 2)));
+            enemyStats.EcurrentHealth -= (7 + calcAttackValue() - calcDefenceValue());
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth + (7 + (calcAttackValue() - calcDefenceValue()) / 2)));
         }
         else if (battleState == BattleState.ENEMYTURN)
         {
-            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
-            enemyStats.EcurrentHealth += (8 + (calcAttackValue() - calcDefenceValue()) / 2);
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (7 + calcAttackValue() - calcDefenceValue())));
+            enemyStats.EcurrentHealth += (7 + (calcAttackValue() - calcDefenceValue()) / 2);
         }
+        moveFinished = true;
     }
     public void HeavyStrike()
     {//Perform a heavy attack
         if (battleState == BattleState.PLAYERTURN)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 15);
-            enemyStats.EcurrentHealth -= (12 + calcAttackValue() - calcDefenceValue());
+            enemyStats.EcurrentHealth -= (17 + calcAttackValue() - calcDefenceValue());
         }
         else if (battleState == BattleState.ENEMYTURN)
         {
-            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (12 + calcAttackValue() - calcDefenceValue())));
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (17 + calcAttackValue() - calcDefenceValue())));
         }
+        moveFinished = true;
     }
     public void DoubleStrike()
     {//Hit the opponent 2 times
-        counter += 1;
-        if (counter == 2)
-        {
-            moveFinished = true;
-            counter = 0;
-        }
         if (battleState == BattleState.PLAYERTURN && !moveFinished)
         {
-            PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 4);
-            enemyStats.EcurrentHealth -= (10 + calcAttackValue() - calcDefenceValue());
-            counter += 1;
-            Invoke("DoubleStrike", 0.6f);
+            PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 8);
+            enemyStats.EcurrentHealth -= (12 + calcAttackValue() - calcDefenceValue());
         }
         else if (battleState == BattleState.ENEMYTURN && !moveFinished)
         {
-            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (10 + calcAttackValue() - calcDefenceValue())));
-            counter += 1;
-            Invoke("DoubleStrike", 0.6f);
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (12 + calcAttackValue() - calcDefenceValue())));
         }
+        moveFinished = true;
     }
     public void TripleStrike()
     {//Hit the opponent 3 times
-        counter += 1;
-        if (counter == 4)
-        {
-            moveFinished = true;
-            counter = 0;
-        }
         if (battleState == BattleState.PLAYERTURN && !moveFinished)
         {
-            PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 5);
-            enemyStats.EcurrentHealth -= (10 + calcAttackValue() - calcDefenceValue());
-            Invoke("TripleStrike", 0.4f);
+            PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 15);
+            enemyStats.EcurrentHealth -= (15 + calcAttackValue() - calcDefenceValue());
         }
         else if (battleState == BattleState.ENEMYTURN && !moveFinished)
         {
-            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (10 + calcAttackValue() - calcDefenceValue())));
-            Invoke("TripleStrike", 0.4f);
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (15 + calcAttackValue() - calcDefenceValue())));
         }
     }
-    public void PoisonStrike()
+    public void ToxicSlash()
     {//Lower opponents defence
         if (battleState == BattleState.PLAYERTURN)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 10);
-            enemyStats.EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
-            enemyStats.battleDefence -= 10;
+            enemyStats.EcurrentHealth -= (7 + calcAttackValue() - calcDefenceValue());
+            enemyStats.battleDefence -= 15;
         }
         else if (battleState == BattleState.ENEMYTURN)
         {
-            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (8 + calcAttackValue() - calcDefenceValue())));
-            playerStats.battleDefence -= 10;
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (7 + calcAttackValue() - calcDefenceValue())));
+            playerStats.battleDefence -= 15;
         }
+        moveFinished = true;
+    }
+    public void SoulSiphon()
+    {//Heal the user for a percentage of the damage dealt
+        if (battleState == BattleState.ENEMYTURN)
+        {
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (6 + calcAttackValue() - calcDefenceValue())));
+            PlayerPrefs.SetInt("ManaRating", (playerStats.currentMana - (1 + calcAttackValue() - calcDefenceValue())));
+            enemyStats.EcurrentHealth += (6 + (calcAttackValue() - calcDefenceValue()) / 2);
+        }
+        moveFinished = true;
+    }
+    public void DeathSlash()
+    {//Heal the user for a percentage of the damage dealt
+        if (battleState == BattleState.ENEMYTURN)
+        {
+            PlayerPrefs.SetInt("HealthRating", Mathf.RoundToInt(playerStats.currentHealth / 2));
+        }
+        moveFinished = true;
     }
     public void BuffAllStats()
     {

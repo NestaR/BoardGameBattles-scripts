@@ -132,7 +132,7 @@ public class PlayerStats : MonoBehaviour
             PlayerPrefs.SetInt("MaxHealthRating", 50);
             PlayerPrefs.SetInt("ManaRating", 50);
             PlayerPrefs.SetInt("MaxManaRating", 50);
-            PlayerPrefs.SetInt("AttackRating", 11);
+            PlayerPrefs.SetInt("AttackRating", 12);
             PlayerPrefs.SetInt("ArmorRating", 14);
             PlayerPrefs.SetInt("SpeedRating", 11);
             PlayerPrefs.SetInt("ReviveCharges", 0);
@@ -147,9 +147,10 @@ public class PlayerStats : MonoBehaviour
             PlayerPrefs.SetInt("MaxManaRating", 50);
             PlayerPrefs.SetInt("AttackRating", 9);
             PlayerPrefs.SetInt("ArmorRating", 21);
-            PlayerPrefs.SetInt("SpeedRating", 10);
+            PlayerPrefs.SetInt("SpeedRating", 9);
             PlayerPrefs.SetInt("ReviveCharges", 0);
             PlayerPrefs.Save();
+            pos.y += -0.16f;
             Instantiate(character2, pos, rotation, this.transform);
         }
         else if (PlayerPrefs.GetString("CharacterSelected") == "MartialHero")
@@ -176,6 +177,7 @@ public class PlayerStats : MonoBehaviour
             PlayerPrefs.SetInt("SpeedRating", 10);
             PlayerPrefs.SetInt("ReviveCharges", 0);
             PlayerPrefs.Save();
+            pos.y += 0.22f;
             Instantiate(character4, pos, rotation, this.transform);
         }
         else if (PlayerPrefs.GetString("CharacterSelected") == "MedievalWarrior2")
@@ -200,7 +202,9 @@ public class PlayerStats : MonoBehaviour
         }
         else if (PlayerPrefs.GetString("CharacterSelected") == "HeroKnight2")
         {
-            Instantiate(character2, this.transform.position, Quaternion.identity, this.transform);
+            Vector3 newPos = this.transform.position;
+            newPos.y += -0.16f;
+            Instantiate(character2, newPos, Quaternion.identity, this.transform);
         }
         else if (PlayerPrefs.GetString("CharacterSelected") == "MartialHero")
         {
@@ -208,7 +212,9 @@ public class PlayerStats : MonoBehaviour
         }
         else if (PlayerPrefs.GetString("CharacterSelected") == "MedievalWarrior1")
         {
-            Instantiate(character4, this.transform.position, Quaternion.identity, this.transform);
+            Vector3 newPos = this.transform.position;
+            newPos.y += 0.22f;
+            Instantiate(character4, newPos, Quaternion.identity, this.transform);
         }
         else if (PlayerPrefs.GetString("CharacterSelected") == "MedievalWarrior2")
         {
