@@ -16,17 +16,27 @@ public class BattleMoves : MonoBehaviour
     public bool attackChosen, playerRunning, enemyRunning, attackReady, isEnemy, moveSet1, moveSet2, moveSet3, moveSetBoss, firstTurn, turnFinished = false;
     bool attacking, attack1, attack2, attack3, attack4;
     bool playerFlipped, enemyFlipped;
-    public Button battack1, battack2, battack3, battack4, backButton;
-    public string attackName;
-    string[] moveSet;
+    public Button battack1, battack2, battack3, battack4, backButton, abilityButton;
+    public string signatureAbility;
+    public string attackName, previousAttack;
+    string[] moveSet, abilityPool;
     public int battleTurn, playerHP, battleSpeed;
     public Text attackUI, defenceUI, turnDescription;
-    int counter, numAttAnimations;
+    int counter, numAttAnimations, attSequence, attackManaCost;
     public bool speedCheck, hasClicked, moveFinished, hit, stationaryAttack;
     PlayerStats playerStats, enemyStats;
     public GameManager battleManager;
     void Start()
     {
+        abilityPool = new string[8];
+        abilityPool[0] = "In Bloom";//Attacks restore hp and mana
+        abilityPool[1] = "Mayday";//Increase defence after being hit
+        abilityPool[2] = "Sunrise/Sunset";//Attacks hit twice
+        abilityPool[3] = "Roundabout";//Using a repeat move boosts attack
+        abilityPool[4] = "Snowball";//Personal attribute buffs are doubled
+        abilityPool[5] = "Fearless";//Lower enemy att and def when entering battle
+        abilityPool[6] = "Alchemy";//Potions are buffed and have a chance to not be consumed
+        abilityPool[7] = "Equilibrium";//Losing HP restores MP/Losing MP restores HP
         moveSet = new string[4];
         if (!PlayerPrefs.HasKey("PlayerRun"))
         {
@@ -56,6 +66,11 @@ public class BattleMoves : MonoBehaviour
         {
             Debug.Log("No character");
         }
+        if (PlayerPrefs.GetInt("EnemiesDefeated") > 2)
+        {
+            AddAbility();
+            abilityButton.interactable = true;
+        }         
         startPos = player.transform.position;
         PAttackPos.x = playerAttackP.transform.position.x;
         PAttackPos.y = playerAttackP.transform.position.y;
@@ -96,7 +111,7 @@ public class BattleMoves : MonoBehaviour
             moveSet[0] = "Slash";
             moveSet[1] = "Heavy Strike";
             moveSet[2] = "Defence Buff";
-            moveSet[3] = "Slash";
+            moveSet[3] = "Defence Buff";
         }
         else if (enemyStats.moveSetBoss)
         {
@@ -109,10 +124,50 @@ public class BattleMoves : MonoBehaviour
         battleState = BattleState.START;
         
     }
+
+    void AddAbility()
+    {
+        if (PlayerPrefs.GetString("CharacterSelected") == "HeroKnight1")
+        {//Using an attack restores health and mana
+            signatureAbility = "In Bloom";
+            PlayerPrefs.SetString("SignatureAbility", signatureAbility);
+            PlayerPrefs.Save();
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "HeroKnight2")
+        {//Getting hit boosts battle defence            
+            signatureAbility = "Mayday";
+            PlayerPrefs.SetString("SignatureAbility", signatureAbility);               
+            PlayerPrefs.Save();
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "MartialHero")
+        {//Attacks hit twice
+            signatureAbility = "Sunrise/Sunset";
+            PlayerPrefs.SetString("SignatureAbility", signatureAbility);               
+            PlayerPrefs.Save();
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "MedievalWarrior1")
+        {//Using the same attack increases its strength
+            signatureAbility = "Roundabout";
+            PlayerPrefs.SetString("SignatureAbility", signatureAbility);
+            PlayerPrefs.Save();
+        }
+        else if (PlayerPrefs.GetString("CharacterSelected") == "MedievalWarrior2")
+        {//Gain a random ability every turn
+            signatureAbility = "Infinity Pool";
+            PlayerPrefs.SetString("SignatureAbility", signatureAbility);
+            PlayerPrefs.Save();
+        }     
+    }
     IEnumerator BeginBattle()
     {//Find the player and enemy at the start of the battle
         yield return new WaitForSeconds(1);
-
+        firstTurn = true;
+        //if(signatureAbility == "Fearless" && enemy != null)
+        //{
+        //    enemyStats.battleAttack -= (3 * PlayerPrefs.GetInt("EnemiesDefeated"));
+        //    enemyStats.battleDefence -= (3 * PlayerPrefs.GetInt("EnemiesDefeated"));
+        //}
+        checkAbility("Fearless");
         if (!speedCheck && enemy != null && enemyStats.Espeed > playerStats.speed)
         {//If the enemy is faster they attack first           
             disableButtons();
@@ -132,7 +187,11 @@ public class BattleMoves : MonoBehaviour
     }
     IEnumerator PlayerTurn()
     {
-        
+        //if (signatureAbility == "Infinity Pool")
+        //{
+        //    signatureAbility = abilityPool[Random.Range(0, abilityPool.Length)];
+        //}
+        checkAbility("Infinity Pool");
         //speedCheck = true;
         turnDescription.text = "Player's turn";
         // probably display some message 
@@ -154,7 +213,7 @@ public class BattleMoves : MonoBehaviour
         {
             StartCoroutine(BeginBattle());
         }
-
+        Debug.Log(PlayerPrefs.GetInt("EnemiesDefeated"));
 
     }
     public void checkHP()
@@ -233,6 +292,42 @@ public class BattleMoves : MonoBehaviour
             enemyAnimator.SetTrigger("Attack1");
         }
     }
+    void checkAbility(string abilityName)
+    {
+        if(signatureAbility == abilityName)
+        {//Elementalist
+            PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("HealthRating") + Mathf.RoundToInt(attackManaCost / 2));
+        }
+        else if (signatureAbility == abilityName)
+        {//Roundabout
+            if (attackName == previousAttack)
+            {
+                playerStats.battleAttack += 7;
+            }
+            else
+            {
+                playerStats.battleAttack = 0;
+            }
+        }
+        else if (signatureAbility == abilityName)
+        {//Infinity Pool
+            signatureAbility = abilityPool[Random.Range(0, abilityPool.Length)];
+        }
+        else if (moveFinished && signatureAbility == abilityName)
+        {//In Bloom
+            PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("HealthRating") + PlayerPrefs.GetInt("EnemiesDefeated") + 4);
+            PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") + PlayerPrefs.GetInt("EnemiesDefeated") + 4);
+        }
+        else if (signatureAbility == abilityName)
+        {//Mayday
+            playerStats.battleDefence += 5 + PlayerPrefs.GetInt("EnemiesDefeated");
+        }
+        else if (signatureAbility == abilityName && enemy != null)
+        {//Fearless
+            enemyStats.battleAttack -= (3 * PlayerPrefs.GetInt("EnemiesDefeated"));
+            enemyStats.battleDefence -= (3 * PlayerPrefs.GetInt("EnemiesDefeated"));
+        }
+    }
     IEnumerator PlayerAttack()
     {//Perform the players chosen attack
         disableButtons();
@@ -254,19 +349,49 @@ public class BattleMoves : MonoBehaviour
         if (!stationaryAttack)
         {
             enemyAnimator.SetTrigger("Hit");
+            checkAbility("Roundabout");
         }
+        //if (!stationaryAttack && signatureAbility == "Roundabout")
+        //{
+        //    if(attackName == previousAttack)
+        //    {
+        //        playerStats.battleAttack += 7;
+        //    }
+        //    else
+        //    {
+        //        playerStats.battleAttack = 0;
+        //    }
+        //}
         Invoke(attackName, 0f);
-
-
+        //if(signatureAbility == "Elementalist")
+        //{
+        //    PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("HealthRating") + Mathf.RoundToInt(attackManaCost / 2));
+        //}
+        checkAbility("Elementalist");
         while (!moveFinished)
         {
             yield return null;
         }
+        previousAttack = attackName;
+        if (!stationaryAttack && moveFinished && signatureAbility == "Sunrise/Sunset")
+        {
+            chooseAttackAnimation(attackName);
+            yield return new WaitForSeconds(1.5f);
+            enemyAnimator.SetTrigger("Hit");
+            Invoke(attackName, 0f);
+        }
+        checkAbility("In Bloom");
+        //else if(moveFinished && signatureAbility == "In Bloom")
+        //{
+        //    PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("HealthRating") + PlayerPrefs.GetInt("EnemiesDefeated") + 4);
+        //    PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") + PlayerPrefs.GetInt("EnemiesDefeated") + 4);
+        //}
         while (!turnFinished)
         {
             playerStartPosition();
             yield return null;
         }
+        firstTurn = false;
         battleState = BattleState.ENEMYTURN;
         yield return StartCoroutine(EnemyTurn());
     }
@@ -309,12 +434,22 @@ public class BattleMoves : MonoBehaviour
         yield return new WaitForSeconds(2f);
         if (!stationaryAttack)
         {
-            playerAnimator.SetTrigger("Hit");          
+            playerAnimator.SetTrigger("Hit");
+            //if (signatureAbility == "Mayday")
+            //{
+            //    playerStats.battleDefence += 5 + PlayerPrefs.GetInt("EnemiesDefeated");
+            //}
+            checkAbility("Mayday");
         }
         else if (stationaryAttack && moveSetBoss)
         {
             playerAnimator.SetTrigger("Hit");
             enemy.transform.GetChild(0).GetChild(0).gameObject.SetActive(false);
+            //if (signatureAbility == "Mayday")
+            //{
+            //    playerStats.battleDefence += 5 + PlayerPrefs.GetInt("EnemiesDefeated");
+            //}
+            checkAbility("Mayday");
         }
         Invoke(attackName, 0f);
 
@@ -328,6 +463,7 @@ public class BattleMoves : MonoBehaviour
             playerStartPosition();
             yield return null;
         }
+        firstTurn = false;
         battleState = BattleState.PLAYERTURN;
         yield return StartCoroutine(PlayerTurn());
     }
@@ -341,6 +477,21 @@ public class BattleMoves : MonoBehaviour
             // of message or play a victory fanfare
             // here          
             BuffAllStats();
+            PlayerPrefs.SetInt("EnemiesDefeated", PlayerPrefs.GetInt("EnemiesDefeated") + 1);
+            int potionChance;
+            potionChance = Random.Range(0, 10);
+            if(potionChance == 0 || potionChance == 1)
+            {
+                PlayerPrefs.SetInt("HealthPotions", PlayerPrefs.GetInt("HealthPotions") + 1);
+            }
+            else if (potionChance == 2 || potionChance == 3)
+            {
+                PlayerPrefs.SetInt("ManaPotions", PlayerPrefs.GetInt("ManaPotions") + 1);
+            }
+            else if (potionChance == 4)
+            {
+                PlayerPrefs.SetInt("SpecialPotions", PlayerPrefs.GetInt("SpecialPotions") + 1);
+            }
             yield return new WaitForSeconds(1);
             Destroy(enemy.gameObject);
             PlayerPrefs.SetInt("NextScene", 0);
@@ -669,8 +820,16 @@ public class BattleMoves : MonoBehaviour
     {//Increase users attack during battle
         if (battleState == BattleState.PLAYERTURN)
         {
-            playerStats.battleAttack += 15;
+            if (signatureAbility == "Snowball")
+            {
+                playerStats.battleAttack += 30;
+            }
+            else
+            {
+                playerStats.battleAttack += 15;
+            }
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 5);
+            attackManaCost = 5;
         }
         else if (battleState == BattleState.ENEMYTURN)
         {
@@ -682,8 +841,16 @@ public class BattleMoves : MonoBehaviour
     {//Increase users defence during battle
         if (battleState == BattleState.PLAYERTURN)
         {
-            playerStats.battleDefence += 15;
+            if (signatureAbility == "Snowball")
+            {
+                playerStats.battleDefence += 30;
+            }
+            else
+            {
+                playerStats.battleDefence += 15;
+            }
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 5);
+            attackManaCost = 5;
         }
         else if (battleState == BattleState.ENEMYTURN)
         {
@@ -696,8 +863,16 @@ public class BattleMoves : MonoBehaviour
         if (battleState == BattleState.PLAYERTURN)
         {
             enemyStats.EcurrentHealth -= (8 + calcAttackValue() - calcDefenceValue());
-            playerStats.battleAttack += 10;
+            if (signatureAbility == "Snowball")
+            {
+                playerStats.battleAttack += 20;
+            }
+            else
+            {
+                playerStats.battleAttack += 10;
+            }
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 10);
+            attackManaCost = 10;
         }
         else if (battleState == BattleState.ENEMYTURN)
         {
@@ -711,6 +886,7 @@ public class BattleMoves : MonoBehaviour
         if (battleState == BattleState.PLAYERTURN)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 10);
+            attackManaCost = 10;
             if (firstTurn)
             {
                 enemyStats.EcurrentHealth -= (15 + calcAttackValue() - calcDefenceValue());
@@ -740,6 +916,7 @@ public class BattleMoves : MonoBehaviour
         if (battleState == BattleState.PLAYERTURN)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 10);
+            attackManaCost = 10;
             enemyStats.EcurrentHealth -= (9 + calcAttackValue() - calcDefenceValue());
             enemyStats.battleAttack -= 10;
         }
@@ -755,6 +932,7 @@ public class BattleMoves : MonoBehaviour
         if (battleState == BattleState.PLAYERTURN)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 12);
+            attackManaCost = 12;
             enemyStats.EcurrentHealth -= (7 + calcAttackValue() - calcDefenceValue());
             PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth + (7 + (calcAttackValue() - calcDefenceValue()) / 2)));
         }
@@ -770,6 +948,7 @@ public class BattleMoves : MonoBehaviour
         if (battleState == BattleState.PLAYERTURN)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 15);
+            attackManaCost = 15;
             enemyStats.EcurrentHealth -= (17 + calcAttackValue() - calcDefenceValue());
         }
         else if (battleState == BattleState.ENEMYTURN)
@@ -780,12 +959,13 @@ public class BattleMoves : MonoBehaviour
     }
     public void DoubleStrike()
     {//Hit the opponent 2 times
-        if (battleState == BattleState.PLAYERTURN && !moveFinished)
+        if (battleState == BattleState.PLAYERTURN)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 8);
+            attackManaCost = 8;
             enemyStats.EcurrentHealth -= (12 + calcAttackValue() - calcDefenceValue());
         }
-        else if (battleState == BattleState.ENEMYTURN && !moveFinished)
+        else if (battleState == BattleState.ENEMYTURN)
         {
             PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (12 + calcAttackValue() - calcDefenceValue())));
         }
@@ -793,12 +973,13 @@ public class BattleMoves : MonoBehaviour
     }
     public void TripleStrike()
     {//Hit the opponent 3 times
-        if (battleState == BattleState.PLAYERTURN && !moveFinished)
+        if (battleState == BattleState.PLAYERTURN)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 15);
+            attackManaCost = 15;
             enemyStats.EcurrentHealth -= (15 + calcAttackValue() - calcDefenceValue());
         }
-        else if (battleState == BattleState.ENEMYTURN && !moveFinished)
+        else if (battleState == BattleState.ENEMYTURN)
         {
             PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - (15 + calcAttackValue() - calcDefenceValue())));
         }
@@ -808,6 +989,7 @@ public class BattleMoves : MonoBehaviour
         if (battleState == BattleState.PLAYERTURN)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 10);
+            attackManaCost = 10;
             enemyStats.EcurrentHealth -= (7 + calcAttackValue() - calcDefenceValue());
             enemyStats.battleDefence -= 15;
         }
@@ -846,11 +1028,86 @@ public class BattleMoves : MonoBehaviour
     }
     public void UseHealthPotion()
     {//Restore HP with a health potion
-        PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("HealthRating") + 30);
+        if(PlayerPrefs.GetInt("HealthPotions") > 0)
+        {
+            if (signatureAbility == "Alchemy")
+            {
+                PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("HealthRating") + 25 + (2 + PlayerPrefs.GetInt("EnemiesDefeated")));
+                if(Random.Range(0, PlayerPrefs.GetInt("EnemiesDefeated")) > (PlayerPrefs.GetInt("EnemiesDefeated") / 2))
+                {
+                    Debug.Log("Potion not consumed!");
+                }
+                else
+                {
+                    PlayerPrefs.SetInt("HealthPotions", PlayerPrefs.GetInt("HealthPotions") - 1);
+                }
+            }
+            else
+            {
+                PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("HealthRating") + 25);
+                PlayerPrefs.SetInt("HealthPotions", PlayerPrefs.GetInt("HealthPotions") - 1);
+            }          
+        }
+        else
+        {
+            Debug.Log("No potions left!");
+        }
     }
     public void UseManaPotion()
     {//Restore MP with a mana potion
-        PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") + 30);
+        if (PlayerPrefs.GetInt("ManaPotions") > 0)
+        {
+            if (signatureAbility == "Alchemy")
+            {
+                PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") + 25 + (2 + PlayerPrefs.GetInt("EnemiesDefeated")));
+                if (Random.Range(0, PlayerPrefs.GetInt("EnemiesDefeated")) > (PlayerPrefs.GetInt("EnemiesDefeated") / 2))
+                {
+                    Debug.Log("Potion not consumed!");
+                }
+                else
+                {
+                    PlayerPrefs.SetInt("ManaPotions", PlayerPrefs.GetInt("ManaPotions") - 1);
+                }
+            }
+            else
+            {
+                PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") + 25);
+                PlayerPrefs.SetInt("ManaPotions", PlayerPrefs.GetInt("ManaPotions") - 1);
+            }
+        }
+        else
+        {
+            Debug.Log("No potions left!");
+        }
+    }
+    public void UseSpecialPotion()
+    {//Restore HP and MP with a special potion
+        if (PlayerPrefs.GetInt("SpecialPotions") > 0)
+        {
+            if (signatureAbility == "Alchemy")
+            {
+                PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("HealthRating") + 20 + (2 + PlayerPrefs.GetInt("EnemiesDefeated")));
+                PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") + 20 + (2 + PlayerPrefs.GetInt("EnemiesDefeated")));
+                if (Random.Range(0, PlayerPrefs.GetInt("EnemiesDefeated")) > (PlayerPrefs.GetInt("EnemiesDefeated") / 2))
+                {
+                    Debug.Log("Potion not consumed!");
+                }
+                else
+                {
+                    PlayerPrefs.SetInt("SpecialPotions", PlayerPrefs.GetInt("SpecialPotions") - 1);
+                }
+            }
+            else
+            {
+                PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("HealthRating") + 20);
+                PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") + 20);
+                PlayerPrefs.SetInt("SpecialPotions", PlayerPrefs.GetInt("SpecialPotions") - 1);
+            }
+        }
+        else
+        {
+            Debug.Log("No potions left!");
+        }
     }
     public void Block()
     {//Block the next attack

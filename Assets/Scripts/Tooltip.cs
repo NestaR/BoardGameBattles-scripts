@@ -103,6 +103,43 @@ public class Tooltip : MonoBehaviour
             tip = "Thrust at your opponent with precise accuracy. Has a 33% chance to crit";
             return tip;
         }
+        else if (name.Contains("Signature Ability"))
+        {
+            if (PlayerPrefs.GetString("SignatureAbility") == "In Bloom")
+            {//Using an attack restores health and mana
+                nameText.text = "In Bloom";
+                tip = "Using an attack restores 4 + (" + PlayerPrefs.GetInt("EnemiesDefeated") + ") health and mana";
+                return tip;
+            }
+            else if (PlayerPrefs.GetString("SignatureAbility") == "Mayday")
+            {//Using an attack restores health and mana
+                nameText.text = "Mayday";
+                tip = "Getting hit boosts your battle defence by 5 + (" + PlayerPrefs.GetInt("EnemiesDefeated") + ")";
+                return tip;
+            }
+            else if (PlayerPrefs.GetString("SignatureAbility") == "Sunrise/Sunset")
+            {//Using an attack restores health and mana
+                nameText.text = "Sunrise/Sunset";
+                tip = "All attacks hit twice";
+                return tip;
+            }
+            else if (PlayerPrefs.GetString("SignatureAbility") == "Roundabout")
+            {//Using an attack restores health and mana
+                nameText.text = "Roundabout";
+                tip = "Using the same attack previously used boosts battle attack by 7 + (" + PlayerPrefs.GetInt("EnemiesDefeated") + ")";
+                return tip;
+            }
+            else if (PlayerPrefs.GetString("SignatureAbility") == "Infinity Pool")
+            {//Using an attack restores health and mana
+                nameText.text = "Infinity Pool";
+                tip = "Gain a random ability at the start of the turn";
+                return tip;
+            }
+            else
+            {
+                return replaceTip;
+            }
+        }
         else
         {
             return replaceTip;

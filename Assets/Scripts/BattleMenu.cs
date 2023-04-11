@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 
 public class BattleMenu : MonoBehaviour
 {
-    public GameObject attackButton, playerAttackButton1, playerAttacksPanel, menuPanel, bagPanel;   
+    public GameObject attackButton, playerAttackButton1, playerAttacksPanel, menuPanel, abilityPanel, bagPanel;   
 
     void Start()
     {
@@ -22,8 +22,14 @@ public class BattleMenu : MonoBehaviour
     {//Open players battle menu for attacking and using items
         playerAttacksPanel.SetActive(false);
         bagPanel.SetActive(false);
+        abilityPanel.SetActive(false);
         menuPanel.SetActive(true);
         EventSystem.current.SetSelectedGameObject(attackButton);
+    }
+    public void showAbilityMenu()
+    {//Open players battle menu for attacking and using items
+        playerAttacksPanel.SetActive(false);
+        abilityPanel.SetActive(true);
     }
     public void showBagMenu()
     {//Open players battle menu for attacking and using items

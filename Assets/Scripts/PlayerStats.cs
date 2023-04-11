@@ -26,11 +26,15 @@ public class PlayerStats : MonoBehaviour
                 attackRating = PlayerPrefs.GetInt("AttackRating");
                 armorRating = PlayerPrefs.GetInt("ArmorRating");
                 speed = PlayerPrefs.GetInt("SpeedRating");
-                reviveCharges = PlayerPrefs.GetInt("ReviveCharges");
+                reviveCharges = PlayerPrefs.GetInt("ReviveCharges");                
                 InstChar();
             }
             else
             {//Set players stats when starting the game
+                PlayerPrefs.SetInt("EnemiesDefeated", 0);
+                PlayerPrefs.SetInt("HealthPotions", 1);
+                PlayerPrefs.SetInt("ManaPotions", 1);
+                PlayerPrefs.SetInt("SpecialPotions", 0);
                 SetStats();               
             }
         }
