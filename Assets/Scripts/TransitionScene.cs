@@ -27,7 +27,7 @@ public class TransitionScene : MonoBehaviour
         speed = 3333f * Time.deltaTime;
         if(transitionObjectIn.activeSelf == true && animationFinished == false)
         {//Activate if transitioning away from a scene
-            if (transitionTransformIn.anchoredPosition.x > -5971)
+            if (transitionTransformIn.anchoredPosition.x >= -5971)
             {
                 transitionTransformIn.anchoredPosition = new Vector2(transitionTransformIn.anchoredPosition.x - speed, transitionTransformIn.anchoredPosition.y);
             }
@@ -39,7 +39,7 @@ public class TransitionScene : MonoBehaviour
         }
         else if(transitionObjectOut.activeSelf == true && animationFinished == false)
         {//Activate if transitioning into a scene
-            if (transitionTransformOut.anchoredPosition.x < 1921)
+            if (transitionTransformOut.anchoredPosition.x <= 1921)
             {
                 transitionTransformOut.anchoredPosition = new Vector2(transitionTransformOut.anchoredPosition.x + speed, transitionTransformOut.anchoredPosition.y);             
             }

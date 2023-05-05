@@ -28,15 +28,15 @@ public class BattleMoves : MonoBehaviour
     public GameManager battleManager;
     void Start()
     {
-        abilityPool = new string[8];
+        abilityPool = new string[4];
         abilityPool[0] = "In Bloom";//Attacks restore hp and mana
         abilityPool[1] = "Mayday";//Increase defence after being hit
         abilityPool[2] = "Sunrise/Sunset";//Attacks hit twice
         abilityPool[3] = "Roundabout";//Using a repeat move boosts attack
-        abilityPool[4] = "Snowball";//Personal attribute buffs are doubled
-        abilityPool[5] = "Fearless";//Lower enemy att and def when entering battle
-        abilityPool[6] = "Alchemy";//Potions are buffed and have a chance to not be consumed
-        abilityPool[7] = "Equilibrium";//Losing HP restores MP/Losing MP restores HP
+        //abilityPool[4] = "";//Personal attribute buffs are doubled
+        //abilityPool[5] = "";
+        //abilityPool[6] = "";
+        //abilityPool[7] = "";//Equilibrium Losing HP restores MP/Losing MP restores HP
         moveSet = new string[4];
         if (!PlayerPrefs.HasKey("PlayerRun"))
         {
@@ -118,7 +118,7 @@ public class BattleMoves : MonoBehaviour
             moveSet[0] = "Slash";
             moveSet[1] = "Soul Siphon";
             moveSet[2] = "Death Slash";
-            moveSet[3] = "Toxic Slash";
+            moveSet[3] = "Slash";
         }
 
         battleState = BattleState.START;
@@ -213,7 +213,7 @@ public class BattleMoves : MonoBehaviour
         {
             StartCoroutine(BeginBattle());
         }
-        Debug.Log(PlayerPrefs.GetInt("EnemiesDefeated"));
+        //Debug.Log(PlayerPrefs.GetInt("EnemiesDefeated"));
 
     }
     public void checkHP()
@@ -294,11 +294,12 @@ public class BattleMoves : MonoBehaviour
     }
     void checkAbility(string abilityName)
     {
-        if(signatureAbility == abilityName)
+        //Debug.Log(signatureAbility + " + " + abilityName);
+        if (signatureAbility == "Elementalist" && abilityName == "Elementalist")
         {//Elementalist
             PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("HealthRating") + Mathf.RoundToInt(attackManaCost / 2));
         }
-        else if (signatureAbility == abilityName)
+        else if (signatureAbility == "Roundabout" && abilityName == "Roundabout")
         {//Roundabout
             if (attackName == previousAttack)
             {
@@ -309,20 +310,23 @@ public class BattleMoves : MonoBehaviour
                 playerStats.battleAttack = 0;
             }
         }
-        else if (signatureAbility == abilityName)
+        else if (signatureAbility == "Infinity Pool" && abilityName == "InfinityPool")
         {//Infinity Pool
-            signatureAbility = abilityPool[Random.Range(0, abilityPool.Length)];
+            checkAbility(abilityPool[Random.Range(0, abilityPool.Length)]);
+            //Debug.Log(signatureAbility);
         }
-        else if (moveFinished && signatureAbility == abilityName)
+        else if (moveFinished && signatureAbility == "In Bloom" && abilityName == "In Bloom")
         {//In Bloom
             PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("HealthRating") + PlayerPrefs.GetInt("EnemiesDefeated") + 4);
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") + PlayerPrefs.GetInt("EnemiesDefeated") + 4);
+            Debug.Log("In Bloom Works");
         }
-        else if (signatureAbility == abilityName)
+        else if (signatureAbility == "Mayday" && abilityName == "Mayday")
         {//Mayday
             playerStats.battleDefence += 5 + PlayerPrefs.GetInt("EnemiesDefeated");
+            Debug.Log("Mayday Works");
         }
-        else if (signatureAbility == abilityName && enemy != null)
+        else if (signatureAbility == "Fearless" && abilityName == "Fearless" && enemy != null)
         {//Fearless
             enemyStats.battleAttack -= (3 * PlayerPrefs.GetInt("EnemiesDefeated"));
             enemyStats.battleDefence -= (3 * PlayerPrefs.GetInt("EnemiesDefeated"));
@@ -351,23 +355,10 @@ public class BattleMoves : MonoBehaviour
             enemyAnimator.SetTrigger("Hit");
             checkAbility("Roundabout");
         }
-        //if (!stationaryAttack && signatureAbility == "Roundabout")
-        //{
-        //    if(attackName == previousAttack)
-        //    {
-        //        playerStats.battleAttack += 7;
-        //    }
-        //    else
-        //    {
-        //        playerStats.battleAttack = 0;
-        //    }
-        //}
+
         Invoke(attackName, 0f);
-        //if(signatureAbility == "Elementalist")
-        //{
-        //    PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("HealthRating") + Mathf.RoundToInt(attackManaCost / 2));
-        //}
         checkAbility("Elementalist");
+
         while (!moveFinished)
         {
             yield return null;
@@ -381,11 +372,6 @@ public class BattleMoves : MonoBehaviour
             Invoke(attackName, 0f);
         }
         checkAbility("In Bloom");
-        //else if(moveFinished && signatureAbility == "In Bloom")
-        //{
-        //    PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("HealthRating") + PlayerPrefs.GetInt("EnemiesDefeated") + 4);
-        //    PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") + PlayerPrefs.GetInt("EnemiesDefeated") + 4);
-        //}
         while (!turnFinished)
         {
             playerStartPosition();
@@ -431,24 +417,16 @@ public class BattleMoves : MonoBehaviour
         attackName = attackName.Replace(" ", "");
         
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1.5f);
         if (!stationaryAttack)
         {
             playerAnimator.SetTrigger("Hit");
-            //if (signatureAbility == "Mayday")
-            //{
-            //    playerStats.battleDefence += 5 + PlayerPrefs.GetInt("EnemiesDefeated");
-            //}
             checkAbility("Mayday");
         }
         else if (stationaryAttack && moveSetBoss)
         {
             playerAnimator.SetTrigger("Hit");
             enemy.transform.GetChild(0).GetChild(0).gameObject.SetActive(false);
-            //if (signatureAbility == "Mayday")
-            //{
-            //    playerStats.battleDefence += 5 + PlayerPrefs.GetInt("EnemiesDefeated");
-            //}
             checkAbility("Mayday");
         }
         Invoke(attackName, 0f);
@@ -472,10 +450,7 @@ public class BattleMoves : MonoBehaviour
         battleManager.GetComponent<TransitionScene>().resetPositions();
         // check if we won
         if (battleState == BattleState.WIN)
-        {
-            // you may wish to display some kind
-            // of message or play a victory fanfare
-            // here          
+        {     
             BuffAllStats();
             PlayerPrefs.SetInt("EnemiesDefeated", PlayerPrefs.GetInt("EnemiesDefeated") + 1);
             int potionChance;

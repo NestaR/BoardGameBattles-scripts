@@ -7,11 +7,15 @@ public class GameManager : MonoBehaviour
 {
     public bool canRoll, mouseEnabled;
     public string tileColour;
-    public GameObject player, sceneObjects, battleObjects, diceObject, menuCanvas, chestCanvas, shopCanvas, buffCanvas;
+    public GameObject player, sceneObjects, battleObjects, diceObject, menuCanvas, chestCanvas, shopCanvas, buffCanvas, statueBouqet1, statueBouqet2;
     PlayerMovement playerM;
     void Start()
     {
         playerM = player.GetComponent<PlayerMovement>();
+        if(playerM != null)
+        {
+            playerM.showRoll = true;
+        }     
     }
     void Update()
     {      
@@ -29,13 +33,14 @@ public class GameManager : MonoBehaviour
         {
             canRoll = false;
         }
-        if(PlayerPrefs.HasKey("NextScene") && PlayerPrefs.GetInt("NextScene") == 0)
+        if (PlayerPrefs.HasKey("NextScene") && PlayerPrefs.GetInt("NextScene") == 0)
         {
             if (this.GetComponent<TransitionScene>().animationFinished)
             {//Show the main scene
                 SceneManager.UnloadSceneAsync("BattleScene");
                 activateAll();
                 canRoll = true;
+                playerM.showRoll = true;
                 PlayerPrefs.DeleteKey("NextScene");
             }
             else
@@ -46,13 +51,15 @@ public class GameManager : MonoBehaviour
         else if (PlayerPrefs.HasKey("NextScene") && PlayerPrefs.GetInt("NextScene") == 2)
         {
             if (this.GetComponent<TransitionScene>().animationFinished)
-            {//Show the main scene
+            {//Show the main scene after losing
                 SceneManager.UnloadSceneAsync("BattleScene");
                 activateAll();
                 canRoll = true;
                 playerM.endReached = true;
                 playerM.defeated = true;
                 PlayerPrefs.DeleteKey("NextScene");
+                statueBouqet1.SetActive(false);
+                statueBouqet2.SetActive(false);
             }
             else
             {//Start the transition into the scene
@@ -69,17 +76,26 @@ public class GameManager : MonoBehaviour
             {
                 this.GetComponent<TransitionScene>().animateInScene();
             }
-            
+
         }
-        else if (tileColour == "Yellow")
+        else if (tileColour.Contains("Yellow"))
         {//Player can add a new attack to their moveset
-            ChestScene();
+            //ChestScene();
+            Invoke("ChestScene", 2f);
         }
-        else if (tileColour == "Blue")
+        else if (tileColour.Contains("Blue"))
         {//Player can receive a permament buff
+            if (tileColour.Contains("1"))
+            {
+                statueBouqet1.SetActive(true);
+            }
+            else if (tileColour.Contains("2"))
+            {
+                statueBouqet2.SetActive(true);
+            }
             BuffScene();
         }
-        else if (tileColour == "Black")
+        else if (tileColour.Contains("Black"))
         {//Start the scene transition animation and open the boss battle scene  
             if (this.GetComponent<TransitionScene>().animationFinished)
             {
