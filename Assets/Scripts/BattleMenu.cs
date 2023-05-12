@@ -6,11 +6,21 @@ using UnityEngine.EventSystems;
 
 public class BattleMenu : MonoBehaviour
 {
-    public GameObject attackButton, playerAttackButton1, playerAttacksPanel, menuPanel, abilityPanel, bagPanel;   
+    public GameObject attackButton, playerAttackButton1, playerAttacksPanel, menuPanel, abilityPanel, bagPanel, deadTreeVariant, TreeVariant;   
 
     void Start()
     {
         EventSystem.current.SetSelectedGameObject(attackButton);
+        if (PlayerPrefs.GetString("MapSelected").Contains("1"))
+        {
+            deadTreeVariant.SetActive(true);
+            TreeVariant.SetActive(false);
+        }
+        else if (PlayerPrefs.GetString("MapSelected").Contains("2"))
+        {
+            deadTreeVariant.SetActive(false);
+            TreeVariant.SetActive(true);
+        }
     }
     public void showPlayerAttacks()
     {//Show the players available attacks in battle
@@ -35,5 +45,9 @@ public class BattleMenu : MonoBehaviour
     {//Open players battle menu for attacking and using items
         playerAttacksPanel.SetActive(false);
         bagPanel.SetActive(true);
+    }
+    public string GetString(string KeyName)
+    {
+        return PlayerPrefs.GetString(KeyName);
     }
 }

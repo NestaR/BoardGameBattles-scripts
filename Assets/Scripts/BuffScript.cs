@@ -8,8 +8,8 @@ using UnityEngine.SceneManagement;
 
 public class BuffScript : MonoBehaviour
 {
-    public GameObject buffCanvas, characterSelect;
-    public string optionName, characterSelected;
+    public GameObject buffCanvas, characterSelect, mapSelect;
+    public string optionName, characterSelected, mapSelected;
     bool charChosen;
     public Button option1button, option2button, option3button, beginButton;
     //Give the player permanent buffs to their stats
@@ -97,8 +97,13 @@ public class BuffScript : MonoBehaviour
     public void LoadMainScene()
     {
         PlayerPrefs.DeleteAll();
+        PlayerPrefs.SetString("MapSelected", mapSelected);
         PlayerPrefs.SetString("CharacterSelected", characterSelected);
         StartCoroutine(LoadYourAsyncScene());
+    }
+    public void MapSelectCanvas()
+    {
+        mapSelect.SetActive(true);
     }
     public void CharacterSelectCanvas()
     {
@@ -112,7 +117,12 @@ public class BuffScript : MonoBehaviour
     {
         characterSelected = "";
         characterSelect.SetActive(false);
-    }    
+    }
+    public void CloseMapSelect()
+    {
+        mapSelected = "";
+        mapSelect.SetActive(false);
+    }
     public void Character1()
     {
         characterSelected = "HeroKnight1";
@@ -133,6 +143,18 @@ public class BuffScript : MonoBehaviour
     {
         characterSelected = "MedievalWarrior2";
     }
+    public void Map1()
+    {
+        mapSelected = "Map1";
+    }
+    public void Map2()
+    {
+        mapSelected = "Map2";
+    }
+    public void Map3()
+    {
+        mapSelected = "Map3";
+    }
     IEnumerator LoadYourAsyncScene()
     {
         // The Application loads the Scene in the background as the current Scene runs.
@@ -140,7 +162,7 @@ public class BuffScript : MonoBehaviour
         // You could also load the Scene by using sceneBuildIndex. In this case Scene2 has
         // a sceneBuildIndex of 1 as shown in Build Settings.
 
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("MainScene");
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(mapSelected);
 
         // Wait until the asynchronous scene fully loads
         while (!asyncLoad.isDone)

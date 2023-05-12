@@ -6,9 +6,9 @@ public class PlayerMovement : MonoBehaviour
 {
     public Camera mainCamera;
     public int numTiles, counter = 0, moveAmount, currentTileNumber = 0, flip1, flip2, flip3, rotate1, rotate2, rotate3;
-    public GameObject player, gameManager, victoryCanvas, cameraRollPosition, cameraPlayerPosition;
+    public GameObject player, gameManager, victoryCanvas, cameraRollPosition, cameraPlayerPosition, directionCanvas;
     public GameObject[] tilePositions;
-    public string currentTileColour;
+    public string currentTileColour, movementDirection;
     public int[] destination;
     public Vector3 startPos, nextPos, cameraPos;
     public bool movingPlayer, finishedMoving, endReached, defeated, victory, showRoll;
@@ -21,11 +21,13 @@ public class PlayerMovement : MonoBehaviour
     {
         PlayerPrefs.DeleteKey(PlayerDiceRoll);
         startPos = transform.position;
+
         tilePositions = new GameObject[numTiles];
         for (int i = 0; i < numTiles; i++)
         {//Store the position of all the tiles in an array for traversing the map
             tilePositions[i] = GameObject.Find("Tile (" + i + ")");
         }
+
         playerAnimator = this.transform.GetChild(1).GetComponent<Animator>();
         cameraPos = mainCamera.transform.position;
     }
@@ -38,7 +40,7 @@ public class PlayerMovement : MonoBehaviour
     {
         Invoke("flipPlayer", 1f);
 
-        if(showRoll)
+        if (showRoll)
         {
             Vector3 newRotation = new Vector3(16, 0, 0);
             if (Vector3.Distance(mainCamera.transform.position, cameraRollPosition.transform.position) > 0.001f)
@@ -49,45 +51,53 @@ public class PlayerMovement : MonoBehaviour
 
             mainCamera.transform.eulerAngles = newRotation;
         }
-        if (PlayerPrefs.HasKey(PlayerDiceRoll) && !movingPlayer)
-        {
-            showRoll = false;
-            moveAmount = PlayerPrefs.GetInt(PlayerDiceRoll);
-            //Move player by amount rolled
-            FindNextPosition();
-            counter += 1;
-        }
-        else if (PlayerPrefs.HasKey(PlayerDiceRoll))
+        if (PlayerPrefs.HasKey(PlayerDiceRoll) && !showRoll)
         {
             if (Vector3.Distance(mainCamera.transform.position, cameraPlayerPosition.transform.position) > 0.001f)
             {
                 mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, cameraPlayerPosition.transform.position, 0.1f);
                 mainCamera.transform.eulerAngles = Vector3.Lerp(mainCamera.transform.eulerAngles, transform.eulerAngles, 0.1f);
             }
-            if(mainCamera.transform.position.y < 0.9f)
+            if (mainCamera.transform.position.y < 0.9f)
             {
                 Vector3 clamp = new Vector3(mainCamera.transform.position.x, 0.9f, mainCamera.transform.position.z);
                 mainCamera.transform.position = clamp;
             }
         }
+        if (PlayerPrefs.HasKey(PlayerDiceRoll) && !movingPlayer)
+        {
+            showRoll = false;
+            moveAmount = PlayerPrefs.GetInt(PlayerDiceRoll);
+            //Move player by amount rolled
+            if (PlayerPrefs.GetString("MapSelected").Contains("2") && movementDirection == null)
+            {
+                showDirectionOption();
+            }
+            else
+            {
+                FindNextPosition();
+                counter += 1;
+            }
+
+        }    
         if (endReached && defeated)
         {//Being defeated brings you back to the start
             playerLost();
         }
-        else if(endReached && victory)
+        else if (endReached && victory)
         {
             playerWin();
         }
-        else if(defeated)
+        else if (defeated)
         {
-            playerLost();       
+            playerLost();
         }
         if (Vector3.Distance(player.transform.position, nextPos) < 0.001f)
-        {         
+        {
             movingPlayer = false;
             if (counter == moveAmount)
             {//Stop moving when reached the correct amount
-                
+
                 playerAnimator.SetBool("Running", false);
                 PlayerPrefs.DeleteKey(PlayerDiceRoll);
                 setTileColour();
@@ -98,11 +108,11 @@ public class PlayerMovement : MonoBehaviour
             player.transform.position = Vector3.MoveTowards(player.transform.position, nextPos, Time.deltaTime * 3f);
             playerAnimator.SetBool("Running", true);
         }
-        if(currentTileNumber >= (numTiles - 1))
+        if (currentTileNumber >= (numTiles - 1))
         {
             gameManager.GetComponent<GameManager>().canRoll = false;
         }
-        
+
         if (player.transform.position == startPos)
         {
             defeated = false;
@@ -131,7 +141,7 @@ public class PlayerMovement : MonoBehaviour
         {
             Vector3 newRotation = new Vector3(0, rotate1, 0);
             transform.eulerAngles = newRotation;
-            if(!flipped1)
+            if (!flipped1)
             {
                 Vector3 newScale = transform.localScale;
                 newScale.x *= -1;
@@ -150,7 +160,7 @@ public class PlayerMovement : MonoBehaviour
     }
     void flipCamera()
     {
-        if(flipped1)
+        if (flipped1)
         {
             Vector3 newRotation = new Vector3(0, rotate1, 0);
             mainCamera.transform.eulerAngles = newRotation;
@@ -172,7 +182,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
     void setTileColour()
-    {      
+    {
         finishedMoving = true;
         gameManager.GetComponent<GameManager>().canRoll = true;
         PlayerPrefs.SetString("CurrentTile", currentTileColour);
@@ -180,23 +190,63 @@ public class PlayerMovement : MonoBehaviour
         gameManager.GetComponent<GameManager>().GetComponent<TransitionScene>().resetPositions();
         counter = 0;
     }
+    void showDirectionOption()
+    {
+        directionCanvas.SetActive(true);
+    }
+    public void pickDirectionLeft()
+    {
+        movementDirection = "Left";
+        directionCanvas.SetActive(false);
+    }
+    public void pickDirectionRight()
+    {
+        movementDirection = "Right";
+        currentTileNumber = numTiles;
+        directionCanvas.SetActive(false);
+    }
     void FindNextPosition()
     {//Move the player tile by tile by the amount rolled on the dice
         PlayerPrefs.DeleteKey("CurrentTile");
         movingPlayer = true;
-        finishedMoving = false;       
-        if (currentTileNumber >= (numTiles - 1))
-        {//If the player rolls past the last tile stop them at the end
-            nextPos = new Vector3(tilePositions[numTiles - 1].transform.position.x, 0.3864222f, tilePositions[numTiles - 1].transform.position.z);
-            endReached = true;
-            gameManager.GetComponent<GameManager>().canRoll = false;
-            //0.6135788
-        }
-        else
+        finishedMoving = false;
+        if (PlayerPrefs.GetString("MapSelected").Contains("1"))
         {
-            currentTileNumber += 1;
-            nextPos = new Vector3(tilePositions[currentTileNumber].transform.position.x, 0.3864222f, tilePositions[currentTileNumber].transform.position.z);
-            endReached = false;
+            if (currentTileNumber >= (numTiles - 1))
+            {//If the player rolls past the last tile stop them at the end
+                nextPos = new Vector3(tilePositions[numTiles - 1].transform.position.x, 0.3864222f, tilePositions[numTiles - 1].transform.position.z);
+                endReached = true;
+                gameManager.GetComponent<GameManager>().canRoll = false;
+                //0.6135788
+            }
+            else
+            {
+                currentTileNumber += 1;
+                nextPos = new Vector3(tilePositions[currentTileNumber].transform.position.x, 0.3864222f, tilePositions[currentTileNumber].transform.position.z);
+                endReached = false;
+            }
+        }
+        else if (PlayerPrefs.GetString("MapSelected").Contains("2"))
+        {
+            if (currentTileNumber == (8))
+            {//If the player rolls past the last tile stop them at the end
+                nextPos = new Vector3(tilePositions[8].transform.position.x, 0.3864222f, tilePositions[8].transform.position.z);
+                endReached = true;
+                gameManager.GetComponent<GameManager>().canRoll = false;
+                //0.6135788
+            }
+            else if(movementDirection.Contains("Left"))
+            {
+                currentTileNumber += 1;
+                nextPos = new Vector3(tilePositions[currentTileNumber].transform.position.x, 0.3864222f, tilePositions[currentTileNumber].transform.position.z);
+                endReached = false;
+            }
+            else if (movementDirection.Contains("Right"))
+            {
+                currentTileNumber -= 1;
+                nextPos = new Vector3(tilePositions[currentTileNumber].transform.position.x, 0.3864222f, tilePositions[currentTileNumber].transform.position.z);
+                endReached = false;
+            }
         }
     }
 

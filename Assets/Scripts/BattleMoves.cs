@@ -14,7 +14,7 @@ public class BattleMoves : MonoBehaviour
     public Animator playerAnimator, enemyAnimator;
     public Vector3 startPos, enemystartPos, PAttackPos, EAttackPos;
     public bool attackChosen, playerRunning, enemyRunning, attackReady, isEnemy, moveSet1, moveSet2, moveSet3, moveSetBoss, firstTurn, turnFinished = false;
-    bool attacking, attack1, attack2, attack3, attack4;
+    bool attacking, dodged, attack1, attack2, attack3, attack4;
     bool playerFlipped, enemyFlipped;
     public Button battack1, battack2, battack3, battack4, backButton, abilityButton;
     public string signatureAbility;
@@ -28,15 +28,11 @@ public class BattleMoves : MonoBehaviour
     public GameManager battleManager;
     void Start()
     {
-        abilityPool = new string[4];
-        abilityPool[0] = "In Bloom";//Attacks restore hp and mana
-        abilityPool[1] = "Mayday";//Increase defence after being hit
-        abilityPool[2] = "Sunrise/Sunset";//Attacks hit twice
-        abilityPool[3] = "Roundabout";//Using a repeat move boosts attack
-        //abilityPool[4] = "";//Personal attribute buffs are doubled
-        //abilityPool[5] = "";
-        //abilityPool[6] = "";
-        //abilityPool[7] = "";//Equilibrium Losing HP restores MP/Losing MP restores HP
+        //abilityPool = new string[4];
+        //abilityPool[0] = "In Bloom";//Attacks restore hp and mana
+        //abilityPool[1] = "Mayday";//Increase defence after being hit
+        //abilityPool[2] = "Sunrise/Sunset";//Attacks hit twice
+        //abilityPool[3] = "Roundabout";//Using a repeat move boosts attack
         moveSet = new string[4];
         if (!PlayerPrefs.HasKey("PlayerRun"))
         {
@@ -153,7 +149,7 @@ public class BattleMoves : MonoBehaviour
         }
         else if (PlayerPrefs.GetString("CharacterSelected") == "MedievalWarrior2")
         {//Gain a random ability every turn
-            signatureAbility = "Infinity Pool";
+            signatureAbility = "Duellist";
             PlayerPrefs.SetString("SignatureAbility", signatureAbility);
             PlayerPrefs.Save();
         }     
@@ -187,11 +183,6 @@ public class BattleMoves : MonoBehaviour
     }
     IEnumerator PlayerTurn()
     {
-        //if (signatureAbility == "Infinity Pool")
-        //{
-        //    signatureAbility = abilityPool[Random.Range(0, abilityPool.Length)];
-        //}
-        checkAbility("Infinity Pool");
         //speedCheck = true;
         turnDescription.text = "Player's turn";
         // probably display some message 
@@ -310,9 +301,16 @@ public class BattleMoves : MonoBehaviour
                 playerStats.battleAttack = 0;
             }
         }
-        else if (signatureAbility == "Infinity Pool" && abilityName == "InfinityPool")
-        {//Infinity Pool
-            checkAbility(abilityPool[Random.Range(0, abilityPool.Length)]);
+        else if (signatureAbility == "Duellist" && abilityName == "Duellist")
+        {//Duellist
+            if(Random.Range(0.0f, 100.0f) <= 32.0f)
+            {
+                dodged = true;
+            }
+            else
+            {
+                dodged = false;
+            }
             //Debug.Log(signatureAbility);
         }
         else if (moveFinished && signatureAbility == "In Bloom" && abilityName == "In Bloom")
@@ -429,7 +427,18 @@ public class BattleMoves : MonoBehaviour
             enemy.transform.GetChild(0).GetChild(0).gameObject.SetActive(false);
             checkAbility("Mayday");
         }
-        Invoke(attackName, 0f);
+        checkAbility("Duellist");
+        if ((attackName.Contains("Slash") || attackName.Contains("Strike")) && dodged)
+        {
+            Debug.Log("Attack Dodged!");
+            playerAnimator.SetTrigger("Dodge");
+            dodged = false;
+        }
+        else
+        {
+            Invoke(attackName, 0f);
+        }
+        
 
         while (!moveFinished)
         {
