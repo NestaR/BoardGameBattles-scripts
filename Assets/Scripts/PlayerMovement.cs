@@ -6,7 +6,7 @@ public class PlayerMovement : MonoBehaviour
 {
     public Camera mainCamera;
     public int numTiles, counter = 0, moveAmount, currentTileNumber = 0, flip1, flip2, flip3, rotate1, rotate2, rotate3;
-    public GameObject player, gameManager, victoryCanvas, cameraRollPosition, cameraPlayerPosition, directionCanvas;
+    public GameObject player, gameManager, victoryCanvas, cameraRollPosition, cameraPlayerPosition, directionCanvas, chestAnim;
     public GameObject[] tilePositions;
     public string currentTileColour, movementDirection;
     public int[] destination;
@@ -69,7 +69,7 @@ public class PlayerMovement : MonoBehaviour
             showRoll = false;
             moveAmount = PlayerPrefs.GetInt(PlayerDiceRoll);
             //Move player by amount rolled
-            if (PlayerPrefs.GetString("MapSelected").Contains("2") && movementDirection == null)
+            if (PlayerPrefs.GetString("MapSelected").Contains("2") && movementDirection == "")
             {
                 showDirectionOption();
             }
@@ -100,6 +100,7 @@ public class PlayerMovement : MonoBehaviour
 
                 playerAnimator.SetBool("Running", false);
                 PlayerPrefs.DeleteKey(PlayerDiceRoll);
+                GameObject.FindWithTag("Upgrades").GetComponent<ChestScript>().movePicked = false;
                 setTileColour();
             }
         }
@@ -120,7 +121,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
     void flipPlayer()
-    {
+    {//Determine which way the player should rotate depending on the position
         if (currentTileNumber >= flip3)
         {
             Vector3 newRotation = new Vector3(0, rotate3, 0);
@@ -129,15 +130,21 @@ public class PlayerMovement : MonoBehaviour
             flipped2 = false;
             flipped3 = true;
         }
-        else if (currentTileNumber >= flip2)
+        else if (currentTileNumber == flip2)
         {
             Vector3 newRotation = new Vector3(0, rotate2, 0);
             transform.eulerAngles = newRotation;
+            if(movementDirection == "Right" && !flipped2)
+            {
+                Vector3 newScale = transform.localScale;
+                newScale.x *= -1;
+                transform.localScale = newScale;
+            }
             flipped1 = false;
             flipped2 = true;
             flipped3 = false;
         }
-        else if (currentTileNumber >= flip1)
+        else if (currentTileNumber == flip1)
         {
             Vector3 newRotation = new Vector3(0, rotate1, 0);
             transform.eulerAngles = newRotation;
@@ -159,7 +166,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
     void flipCamera()
-    {
+    {//Determine which way the camera should rotate depending on the position
         if (flipped1)
         {
             Vector3 newRotation = new Vector3(0, rotate1, 0);
@@ -198,12 +205,24 @@ public class PlayerMovement : MonoBehaviour
     {
         movementDirection = "Left";
         directionCanvas.SetActive(false);
+        Vector3 newRotation = new Vector3(0, 45, 0);
+        transform.eulerAngles = newRotation;
+        Vector3 newRotationC = new Vector3(0, 45, 0);
+        mainCamera.transform.eulerAngles = newRotationC;
+        chestAnim.GetComponent<TriggerAnimation>().chestAnimation();
     }
     public void pickDirectionRight()
     {
         movementDirection = "Right";
         currentTileNumber = numTiles;
         directionCanvas.SetActive(false);
+        Vector3 newRotation = new Vector3(0, -45, 0);
+        transform.eulerAngles = newRotation;
+        Vector3 newRotationC = new Vector3(0, -45, 0);
+        mainCamera.transform.eulerAngles = newRotationC;
+        Vector3 newScale = transform.localScale;
+        newScale.x *= -1;
+        transform.localScale = newScale;
     }
     void FindNextPosition()
     {//Move the player tile by tile by the amount rolled on the dice
@@ -273,7 +292,18 @@ public class PlayerMovement : MonoBehaviour
     }
     private void OnTriggerEnter(Collider collision)
     {
-        if (collision.gameObject.tag != "Plane")
+        if (collision.gameObject.tag == "Yellow" && !GameObject.FindWithTag("Upgrades").GetComponent<ChestScript>().movePicked)
+        {
+            //chestAnim.GetComponent<TriggerAnimation>().chestAnimation();
+            //Time.timeScale = 0;
+            gameManager.GetComponent<GameManager>().ChestScene();
+        }
+        else if (collision.gameObject.tag == "Blue")
+        {
+            //currentTileColour = collision.gameObject.tag;
+            gameManager.GetComponent<GameManager>().BuffScene();
+        }
+        else if (collision.gameObject.tag != "Plane")
         {
             currentTileColour = collision.gameObject.tag;
         }

@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 namespace TravisGameAssets
 {
 	[System.Serializable]
-	public class StatusEffect
+	public class StatusEffect1
 	{
 		public string effectName;
 		

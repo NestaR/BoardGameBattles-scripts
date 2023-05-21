@@ -6,7 +6,8 @@ using UnityEngine.UI;
 public class PlayerStats : MonoBehaviour
 {
     public bool battleMode, enemy, speedCheck;
-    public bool moveSet1, moveSet2, moveSet3, moveSetBoss;
+    //public bool moveSet1, moveSet2, moveSet3, moveSetBoss;
+    public string enemyMoveSet;
     public int currentHealth, maxHealth, currentMana, maxMana, attackRating, armorRating, speed, battleAttack, battleDefence, reviveCharges;
     public int EcurrentHealth, EmaxHealth, EattackRating, EarmorRating, Espeed;
     public Text healthUI, manaUI, maxMPUI, attackUI, armorUI, speedUI, maxHPUI, currentBattleHP, maxBattleHP, currentBattleMP, maxBattleMP, battleAttackUI, battleDefenceUI, reviveChargesUI, battleReviveChargesUI;
@@ -81,7 +82,7 @@ public class PlayerStats : MonoBehaviour
             attackUI.text = attackRating.ToString();
             armorUI.text = armorRating.ToString();
             speedUI.text = speed.ToString();
-            reviveChargesUI.text = "x " + reviveCharges.ToString();
+            reviveChargesUI.text = reviveCharges.ToString();
             if (battleMode)
             {
                 if(currentHealth <= 0)
@@ -106,7 +107,7 @@ public class PlayerStats : MonoBehaviour
                 maxBattleMP.text = maxMana.ToString();
                 battleAttackUI.text = "+ " + "(" + battleAttack.ToString() + ")";
                 battleDefenceUI.text = "+ " + "(" + battleDefence.ToString() + ")";
-                battleReviveChargesUI.text = "x " + reviveCharges.ToString();
+                battleReviveChargesUI.text = reviveCharges.ToString();
             }
         }
         else

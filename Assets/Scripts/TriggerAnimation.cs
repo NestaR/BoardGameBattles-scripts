@@ -6,7 +6,7 @@ public class TriggerAnimation : MonoBehaviour
 {
     [SerializeField] private Animator myChest1, myChest2;
     [SerializeField] private string openChest = "Open", closeChest = "Close";
-    bool chestOpened1, chestOpened2;
+    public bool chestOpened1, chestOpened2;
     void Update()
     {
         if(PlayerPrefs.GetString("CurrentTile").Contains("Yellow1") && !chestOpened1)
@@ -20,7 +20,11 @@ public class TriggerAnimation : MonoBehaviour
             chestOpened2 = true;
         }
     }
-    
+    public void chestAnimation()
+    {
+        myChest1.Play(openChest, 0, 0.0f);
+        chestOpened1 = true;
+    }
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Player") && chestOpened1)

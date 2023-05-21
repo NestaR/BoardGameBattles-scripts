@@ -16,7 +16,7 @@ public class ChestScript : MonoBehaviour
     public PlayerOptions playerOptions;
     public string[] moveNames, chestSelection;
     int counter, index, pindex;
-    public bool replace;
+    public bool replace, movePicked;
     // Start is called before the first frame update
     void Start()
     {//Get moves from a text file and store them
@@ -30,8 +30,15 @@ public class ChestScript : MonoBehaviour
     {
         if(chestCanvas != null)
         {
-            if (chestCanvas.activeSelf == true)
+            if ((chestCanvas.activeSelf == true || moveReplacePanel.activeSelf == true) && movePicked)
+            {
+                chestCanvas.SetActive(false);
+                moveReplacePanel.SetActive(false);
+                Time.timeScale = 1;
+            }
+            else if (chestCanvas.activeSelf == true)
             {//If the player lands on a chest tile give them a selection of random moves
+                Time.timeScale = 0;
                 optionButton[0].GetComponentInChildren<Text>().text = chestSelection[0];
                 optionButton[1].GetComponentInChildren<Text>().text = chestSelection[1];
                 optionButton[2].GetComponentInChildren<Text>().text = chestSelection[2];
@@ -48,6 +55,7 @@ public class ChestScript : MonoBehaviour
             }
             if (moveReplacePanel.activeSelf == true)
             {//If the player wants to replace a move they can
+                Time.timeScale = 0;
                 optionButton[0].GetComponentInChildren<Text>().text = playerOptions.attackName[1];
                 optionButton[1].GetComponentInChildren<Text>().text = playerOptions.attackName[2];
                 optionButton[2].GetComponentInChildren<Text>().text = playerOptions.attackName[3];
@@ -64,8 +72,10 @@ public class ChestScript : MonoBehaviour
         else
         {
             ApplyMove(optionButton[0].GetComponentInChildren<Text>().text);
+            movePicked = true;
             chestCanvas.SetActive(false);
         }
+
     }
     public void Option2()
     {
@@ -76,6 +86,7 @@ public class ChestScript : MonoBehaviour
         else
         {
             ApplyMove(optionButton[1].GetComponentInChildren<Text>().text);
+            movePicked = true;
             chestCanvas.SetActive(false);
         }
     }
@@ -88,6 +99,7 @@ public class ChestScript : MonoBehaviour
         else
         {
             ApplyMove(optionButton[2].GetComponentInChildren<Text>().text);
+            movePicked = true;
             chestCanvas.SetActive(false);
         }
     }
@@ -144,11 +156,14 @@ public class ChestScript : MonoBehaviour
         {//If the moveset is full ask the player if they want to replace a move
             moveReplacePanel.SetActive(true);
         }
+        Time.timeScale = 1;
     }
 
     public void ReplaceMove(string moveSelected, int a)
     {
+        movePicked = true;
         playerOptions.attackName[a] = moveSelected;
+        Time.timeScale = 1;
         ReplaceExit();
     }
     public void ReplaceExit()

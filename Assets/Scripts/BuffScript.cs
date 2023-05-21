@@ -11,7 +11,7 @@ public class BuffScript : MonoBehaviour
     public GameObject buffCanvas, characterSelect, mapSelect;
     public string optionName, characterSelected, mapSelected;
     bool charChosen;
-    public Button option1button, option2button, option3button, beginButton;
+    public Button option1button, option2button, option3button, nextButton, beginButton;
     //Give the player permanent buffs to their stats
     void Update()
     {
@@ -23,7 +23,25 @@ public class BuffScript : MonoBehaviour
         {
             PlayerPrefs.SetInt("ReviveCharges", 3);
         }
-        if(characterSelect != null)
+        if (buffCanvas != null)
+        {
+            if (buffCanvas.activeSelf == true)
+            {
+                Time.timeScale = 0;
+            }
+        }
+        if (mapSelect != null)
+        {
+            if (mapSelected == "")
+            {
+                nextButton.enabled = false;
+            }
+            else
+            {
+                nextButton.enabled = true;
+            }
+        }
+        if (characterSelect != null)
         {
             if(characterSelected == "")
             {
@@ -53,12 +71,14 @@ public class BuffScript : MonoBehaviour
         PlayerPrefs.SetInt("HealthRating", HP);
         PlayerPrefs.SetInt("MaxHealthRating", maxHP);
 
+        Time.timeScale = 1;
         buffCanvas.SetActive(false);
     }
     public void Option2()
     {
         PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("MaxHealthRating"));
         PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("MaxManaRating"));
+        Time.timeScale = 1;
         buffCanvas.SetActive(false);
     }
     public void Option3()
@@ -71,6 +91,7 @@ public class BuffScript : MonoBehaviour
         {
             PlayerPrefs.SetInt("ReviveCharges", 1);
         }
+        Time.timeScale = 1;
         buffCanvas.SetActive(false);
     }
     public void SetInt(string KeyName, int Value)
