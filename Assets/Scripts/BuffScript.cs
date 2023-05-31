@@ -13,6 +13,14 @@ public class BuffScript : MonoBehaviour
     bool charChosen;
     public Button option1button, option2button, option3button, nextButton, beginButton;
     //Give the player permanent buffs to their stats
+    void Start()
+    {
+        Scene scene = SceneManager.GetActiveScene();
+        if (scene.name == "StartScene")
+        {
+            PlayerPrefs.DeleteAll();
+        }
+    }
     void Update()
     {
         if (PlayerPrefs.HasKey("ReviveCharges") && PlayerPrefs.GetInt("ReviveCharges") < 0)
@@ -117,14 +125,13 @@ public class BuffScript : MonoBehaviour
     }
     public void LoadMainScene()
     {
-        PlayerPrefs.DeleteAll();
         PlayerPrefs.SetString("MapSelected", mapSelected);
         PlayerPrefs.SetString("CharacterSelected", characterSelected);
         StartCoroutine(LoadYourAsyncScene());
     }
     public void MapSelectCanvas()
     {
-        mapSelect.SetActive(true);
+        mapSelect.SetActive(true);       
     }
     public void CharacterSelectCanvas()
     {

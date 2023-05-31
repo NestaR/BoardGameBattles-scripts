@@ -105,34 +105,34 @@ public class Tooltip : MonoBehaviour
         }
         else if (name.Contains("Signature Ability"))
         {
-            if (PlayerPrefs.GetString("SignatureAbility") == "In Bloom")
+            if (PlayerPrefs.GetString("SignatureAbility").Contains("In Bloom"))
             {//Using an attack restores health and mana
                 nameText.text = "In Bloom";
                 tip = "Using an attack restores 4 + (" + PlayerPrefs.GetInt("EnemiesDefeated") + ") health and mana";
                 return tip;
             }
-            else if (PlayerPrefs.GetString("SignatureAbility") == "Mayday")
+            else if (PlayerPrefs.GetString("SignatureAbility").Contains("Mayday"))
             {//Using an attack restores health and mana
                 nameText.text = "Mayday";
                 tip = "Getting hit boosts your battle defence by 5 + (" + PlayerPrefs.GetInt("EnemiesDefeated") + ")";
                 return tip;
             }
-            else if (PlayerPrefs.GetString("SignatureAbility") == "Sunrise/Sunset")
+            else if (PlayerPrefs.GetString("SignatureAbility").Contains("Sunrise/Sunset"))
             {//Using an attack restores health and mana
                 nameText.text = "Sunrise/Sunset";
                 tip = "All attacks hit twice";
                 return tip;
             }
-            else if (PlayerPrefs.GetString("SignatureAbility") == "Roundabout")
+            else if (PlayerPrefs.GetString("SignatureAbility").Contains("Roundabout"))
             {//Using an attack restores health and mana
                 nameText.text = "Roundabout";
                 tip = "Using the same attack previously used boosts battle attack by 7 + (" + PlayerPrefs.GetInt("EnemiesDefeated") + ")";
                 return tip;
             }
-            else if (PlayerPrefs.GetString("SignatureAbility") == "Infinity Pool")
-            {//Using an attack restores health and mana
-                nameText.text = "Infinity Pool";
-                tip = "Gain a random ability at the start of the turn";
+            else if (PlayerPrefs.GetString("SignatureAbility").Contains("Duelist"))
+            {//Chance of avoiding an attack
+                nameText.text = "Duelist";
+                tip = "Enemy attacks have a 32% chance to be avoided";
                 return tip;
             }
             else

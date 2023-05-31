@@ -12,6 +12,10 @@ public class PlayerStats : MonoBehaviour
     public int EcurrentHealth, EmaxHealth, EattackRating, EarmorRating, Espeed;
     public Text healthUI, manaUI, maxMPUI, attackUI, armorUI, speedUI, maxHPUI, currentBattleHP, maxBattleHP, currentBattleMP, maxBattleMP, battleAttackUI, battleDefenceUI, reviveChargesUI, battleReviveChargesUI;
     public GameObject character1, character2, character3, character4, character5;
+
+    public int sortingOrder = 0;
+    private SpriteRenderer sprite;
+    bool changedOrder;
     //public Text EcurrentBattleHP, EmaxBattleHP;
     void Awake()
     {
@@ -60,12 +64,21 @@ public class PlayerStats : MonoBehaviour
             }
         }
     }
-
-    void Update()
+    void Start()
     {
         
+    }
+    void Update()
+    {
         if (!enemy)
         {
+            if (battleMode && !changedOrder)
+            {
+                sprite = this.transform.GetChild(0).GetComponent<SpriteRenderer>();
+                sprite.sortingOrder = sortingOrder;
+                changedOrder = true;
+            }
+
             reviveCharges = PlayerPrefs.GetInt("ReviveCharges");
             currentHealth = PlayerPrefs.GetInt("HealthRating");
             maxHealth = PlayerPrefs.GetInt("MaxHealthRating");
@@ -112,6 +125,11 @@ public class PlayerStats : MonoBehaviour
         }
         else
         {
+            if(battleMode)
+            {
+                sprite = this.GetComponent<SpriteRenderer>();
+                sprite.sortingOrder = sortingOrder;
+            }
             if (EcurrentHealth <= 0)
             {
                 EcurrentHealth = 0;

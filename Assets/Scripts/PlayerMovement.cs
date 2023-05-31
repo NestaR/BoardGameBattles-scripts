@@ -17,11 +17,12 @@ public class PlayerMovement : MonoBehaviour
     float timer;
     private const string PlayerDiceRoll = "PlayerDiceRoll", FinishedRolling = "FinishedRolling";
     Animator playerAnimator;
+    SoundScript soundScript;
     void Start()
     {
         PlayerPrefs.DeleteKey(PlayerDiceRoll);
         startPos = transform.position;
-
+        soundScript = gameManager.GetComponent<SoundScript>();
         tilePositions = new GameObject[numTiles];
         for (int i = 0; i < numTiles; i++)
         {//Store the position of all the tiles in an array for traversing the map
@@ -210,6 +211,7 @@ public class PlayerMovement : MonoBehaviour
         Vector3 newRotationC = new Vector3(0, 45, 0);
         mainCamera.transform.eulerAngles = newRotationC;
         chestAnim.GetComponent<TriggerAnimation>().chestAnimation();
+        soundScript.playClip("chestOpen");
     }
     public void pickDirectionRight()
     {
@@ -223,6 +225,7 @@ public class PlayerMovement : MonoBehaviour
         Vector3 newScale = transform.localScale;
         newScale.x *= -1;
         transform.localScale = newScale;
+        soundScript.playClip("shrine");
     }
     void FindNextPosition()
     {//Move the player tile by tile by the amount rolled on the dice

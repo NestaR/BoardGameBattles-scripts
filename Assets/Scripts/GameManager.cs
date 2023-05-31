@@ -13,8 +13,12 @@ public class GameManager : MonoBehaviour
     public Text map1Wins, map2Wins, map3Wins;
     public int m1wins, m2wins, m3wins;
     PlayerMovement playerM;
+    SoundScript sound;
+    AudioSource myAudio;
     void Start()
-    {        
+    {
+        sound = this.GetComponent<SoundScript>();
+        myAudio = GetComponent<AudioSource>();
         if (player != null)
         {
             playerM = player.GetComponent<PlayerMovement>();
@@ -44,7 +48,7 @@ public class GameManager : MonoBehaviour
     {
         Scene scene = SceneManager.GetActiveScene();
         if (player == null && scene.name == "StartScene")
-        {
+        {           
             map1Wins.text = m1wins.ToString();
             map2Wins.text = m2wins.ToString();
             map3Wins.text = m3wins.ToString();
@@ -52,15 +56,18 @@ public class GameManager : MonoBehaviour
         if (Input.GetKeyDown("m") && !menuCanvas.activeSelf && this.GetComponent<TransitionScene>().animationFinished)
         {//Open menu panel
             menuCanvas.SetActive(true);
+            sound.playClip("menuPause");
             Time.timeScale = 0;
         }
         else if (Input.GetKeyDown("m") && menuCanvas.activeSelf)
         {//Close menu panel
             menuCanvas.SetActive(false);
+            sound.playClip("menuUnpause");
             Time.timeScale = 1;
         }
         if (Input.GetMouseButtonUp(1) && canRoll)
         {
+            sound.playClip("diceRoll");
             canRoll = false;
             //GameObject.FindWithTag("Upgrades").GetComponent<ChestScript>().movePicked = false;
         }
@@ -70,6 +77,7 @@ public class GameManager : MonoBehaviour
             {//Show the main scene
                 SceneManager.UnloadSceneAsync("BattleScene");
                 activateAll();
+                myAudio.Play();
                 canRoll = true;
                 playerM.showRoll = true;
                 PlayerPrefs.DeleteKey("NextScene");
@@ -124,11 +132,11 @@ public class GameManager : MonoBehaviour
         }
         else if (tileColour.Contains("Yellow") && chestCanvas.activeSelf == false)
         {//Player can add a new attack to their moveset
-         //ChestScene();           
-            Invoke("ChestScene", 2f);
+         //ChestScene();                      
+            Invoke("ChestScene", 1f);
         }
         else if (tileColour.Contains("Blue"))
-        {//Player can choose between a permament buff, hp/mp restore or a revival charge
+        {//Player can choose between a permament buff, hp/mp restore or a revival charge                       
             BuffScene();
         }
         else if (tileColour.Contains("Black"))
@@ -138,8 +146,7 @@ public class GameManager : MonoBehaviour
                 BattleScene();
             }
             else
-            {
-
+            {              
                 this.GetComponent<TransitionScene>().animateInScene();
             }
         }
@@ -155,6 +162,8 @@ public class GameManager : MonoBehaviour
     }
     public void BattleScene()
     {
+        myAudio.Stop();
+        sound.playClip("encounter");        
         tileColour = "";
         deactivateAll();
         this.GetComponent<TransitionScene>().resetPositions();    
@@ -162,12 +171,14 @@ public class GameManager : MonoBehaviour
     }
     public void ChestScene()
     {
+        sound.playClip("chestOpen");
         chestCanvas.SetActive(true);
         tileColour = "";
         PlayerPrefs.DeleteKey("CurrentTile");      
     }
     public void BuffScene()
     {
+        sound.playClip("shrine");
         if (tileColour.Contains("2"))
         {
             statueBouqet2.SetActive(true);
@@ -206,9 +217,15 @@ public class GameManager : MonoBehaviour
     {
         PlayerPrefs.DeleteAll();
     }
+    public void showRoll()
+    {
+        playerM.showRoll = true;
+    }
     public void CloseMenu()
     {
         menuCanvas.SetActive(false);
+        sound.playClip("menuUnpause");
+        Time.timeScale = 1;
     }
     public void SetInt(string KeyName, int Value)
     {

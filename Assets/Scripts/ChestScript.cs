@@ -26,7 +26,7 @@ public class ChestScript : MonoBehaviour
         GetNewMoves();
     }
     // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
         if(chestCanvas != null)
         {
