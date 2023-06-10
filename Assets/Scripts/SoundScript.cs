@@ -6,8 +6,8 @@ public class SoundScript : MonoBehaviour
 {
     AudioSource audioSource;
     public GameObject greenAudio, redAudio, blackAudio;
-    public AudioClip attack, hit, death, battleVictory, gameVictory, potion, declineClick, confirmClick, chestOpen, shrine, run, mouseHover;
-    public AudioClip menuPause, menuUnpause, diceRoll, encounter;
+    public AudioClip attack, hit, death, battleVictory, gameVictory, potion, revive, declineClick, confirmClick, chestOpen, shrine, run, mouseHover;
+    public AudioClip menuPause, menuUnpause, diceRoll, encounter, dodge, atkbuff, debuff, fireatk, iceatk, thunderatk, toxicatk, absorb;
     bool playing;
     // Start is called before the first frame update
     void Start()
@@ -46,59 +46,95 @@ public class SoundScript : MonoBehaviour
     {
         if(soundName.Contains("attack"))
         {
-            audioSource.PlayOneShot(attack);
+            audioSource.PlayOneShot(attack, 1);
         }
         else if (soundName.Contains("hit"))
         {
-            audioSource.PlayOneShot(hit);
+            audioSource.PlayOneShot(hit, 1);
         }
         else if (soundName.Contains("death"))
         {
-            audioSource.PlayOneShot(death);
+            audioSource.PlayOneShot(death, 1);
         }
         else if (soundName.Contains("battleVictory"))
         {
-            audioSource.PlayOneShot(battleVictory);
+            audioSource.PlayOneShot(battleVictory, 1);
         }
         else if (soundName.Contains("gameVictory"))
         {
-            audioSource.PlayOneShot(gameVictory);
+            audioSource.PlayOneShot(gameVictory, 1);
         }
         else if (soundName.Contains("potion"))
         {
-            audioSource.PlayOneShot(potion);
+            audioSource.PlayOneShot(potion, 1);
         }
         else if (soundName.Contains("declineClick"))
         {
-            audioSource.PlayOneShot(declineClick);
+            audioSource.PlayOneShot(declineClick, 1);
         }
         else if (soundName.Contains("chestOpen"))
         {
-            audioSource.PlayOneShot(chestOpen);
+            audioSource.PlayOneShot(chestOpen, 1);
         }
         else if (soundName.Contains("shrine"))
         {
-            audioSource.PlayOneShot(shrine);
+            audioSource.PlayOneShot(shrine, 1);
         }
         else if (soundName.Contains("run"))
         {
-            audioSource.PlayOneShot(run);
+            audioSource.PlayOneShot(run, 1);
         }
         else if (soundName.Contains("menuPause"))
         {
-            audioSource.PlayOneShot(menuPause);
+            audioSource.PlayOneShot(menuPause, 1);
         }
         else if (soundName.Contains("menuUnpause"))
         {
-            audioSource.PlayOneShot(menuUnpause);
+            audioSource.PlayOneShot(menuUnpause, 1);
         }
         else if (soundName.Contains("diceRoll"))
         {
-            audioSource.PlayOneShot(diceRoll);
+            audioSource.PlayOneShot(diceRoll, 1);
         }
         else if (soundName.Contains("encounter"))
         {
-            audioSource.PlayOneShot(encounter);
+            audioSource.PlayOneShot(encounter, 1);
+        }
+        else if (soundName.Contains("dodge"))
+        {
+            audioSource.PlayOneShot(dodge, 1);
+        }
+        else if (soundName.Contains("atkbuff"))
+        {
+            audioSource.PlayOneShot(atkbuff, 1);
+        }
+        else if (soundName.Contains("debuff"))
+        {
+            audioSource.PlayOneShot(debuff, 1);
+        }
+        else if (soundName.Contains("absorb"))
+        {
+            audioSource.PlayOneShot(absorb, 1);
+        }
+        else if (soundName.Contains("fireatk"))
+        {
+            audioSource.PlayOneShot(fireatk, 1);
+        }
+        else if (soundName.Contains("iceatk"))
+        {
+            audioSource.PlayOneShot(iceatk, 1);
+        }
+        else if (soundName.Contains("thunderatk"))
+        {
+            audioSource.PlayOneShot(thunderatk, 1);
+        }
+        else if (soundName.Contains("toxicatk"))
+        {
+            audioSource.PlayOneShot(toxicatk, 1);
+        }
+        else if (soundName.Contains("revive"))
+        {
+            audioSource.PlayOneShot(revive, 1);
         }
     }
 }

@@ -1,4 +1,3 @@
-
 using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -17,14 +16,14 @@ public class BattleMoves : MonoBehaviour
     Vector3 pEffectPos, eEffectPos;
     public bool attackChosen, playerRunning, enemyRunning, attackReady, isEnemy, firstTurn, turnFinished = false;
     bool attacking, dodged, attack1, attack2, attack3, attack4;
-    bool playerFlipped, enemyFlipped;
+    bool playerFlipped, enemyFlipped, shielding;
     public Button battack1, battack2, battack3, battack4, backButton, abilityButton;
     public string signatureAbility;
     public string attackName, previousAttack;
     string[] moveSet, abilityPool;
     public int battleTurn, playerHP, battleSpeed;
-    public Text attackUI, defenceUI, turnDescription, healthPotionAmount, manaPotionAmount, mixedPotionAmount, abilityUI;
-    int counter, numAttAnimations, attSequence, attackManaCost;
+    public Text attackUI, defenceUI, turnDescription, moveDescription, healthPotionAmount, manaPotionAmount, mixedPotionAmount, abilityUI;
+    int counter, kingCounter, numAttAnimations, attSequence, attackManaCost;
     public bool speedCheck, hasClicked, moveFinished, hit, stationaryAttack;
     PlayerStats playerStats, enemyStats;
     public GameManager battleManager;
@@ -32,11 +31,11 @@ public class BattleMoves : MonoBehaviour
     SoundScript sound;
     void Start()
     {
-        //abilityPool = new string[4];
-        //abilityPool[0] = "In Bloom";//Attacks restore hp and mana
-        //abilityPool[1] = "Mayday";//Increase defence after being hit
-        //abilityPool[2] = "Sunrise/Sunset";//Attacks hit twice
-        //abilityPool[3] = "Roundabout";//Using a repeat move boosts attack
+        //"In Bloom" - Attacks restore hp and mana
+        //"Mayday" - Increase defence after being hit
+        //"Sunrise/Sunset" - Attacks hit twice
+        //"Roundabout" - Using a repeat move boosts attack
+        //"Duelist" - Chance to dodge physical attacks
         attEffect = battleEffects.GetComponent<AttackEffects>();
         sound = battleManager.GetComponent<SoundScript>();
         moveSet = new string[4];
@@ -124,14 +123,41 @@ public class BattleMoves : MonoBehaviour
             moveSet[2] = "Death Slash";
             moveSet[3] = "Slash";
         }
-        else if (enemyStats.enemyMoveSet.Contains("Mushroom"))
+        else if (enemyStats.enemyMoveSet.Contains("Warrior"))
         {//Mushroom
+            moveSet[0] = "Double Slash";
+            moveSet[1] = "Heavy Strike";
+            moveSet[2] = "Fire Slash";
+            moveSet[3] = "Double Slash";
+        }
+        else if (enemyStats.enemyMoveSet.Contains("Knight"))
+        {
+            moveSet[0] = "Shield Brace";
+            moveSet[1] = "Triple Slash";
+            moveSet[2] = "Defence Buff";
+            moveSet[3] = "Defence Buff";
+        }
+        else if (enemyStats.enemyMoveSet.Contains("TheKing"))
+        {
+            moveSet[0] = "Royal Ruse";
+            moveSet[1] = "First Decree";
+            moveSet[2] = "Second Decree";
+            moveSet[3] = "Final Decree";
+        }
+        else if (enemyStats.enemyMoveSet.Contains("Mushroom"))
+        {
             moveSet[0] = "Double Strike";
             moveSet[1] = "Toxic Slash";
             moveSet[2] = "Toxic Slash";
             moveSet[3] = "Healing Strike";
         }
-
+        else if (enemyStats.enemyMoveSet.Contains("Lizard"))
+        {
+            moveSet[0] = "Double Strike";
+            moveSet[1] = "Toxic Slash";
+            moveSet[2] = "Toxic Slash";
+            moveSet[3] = "Healing Strike";
+        }
         battleState = BattleState.START;
         
     }
@@ -192,6 +218,7 @@ public class BattleMoves : MonoBehaviour
     IEnumerator PlayerTurn()
     {
         turnDescription.text = "Player's turn";
+        moveDescription.text = "";
         turnFinished = false;
         attackReady = false; 
         hasClicked = false;
@@ -210,10 +237,6 @@ public class BattleMoves : MonoBehaviour
         manaPotionAmount.text = PlayerPrefs.GetInt("ManaPotions").ToString();
         mixedPotionAmount.text = PlayerPrefs.GetInt("SpecialPotions").ToString();
         abilityUI.text = signatureAbility;
-        if(playerRunning || enemyRunning)
-        {
-            sound.playClip("run");
-        }
     }
     public void checkHP()
     {
@@ -233,6 +256,7 @@ public class BattleMoves : MonoBehaviour
             PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("MaxHealthRating") / 2);
             PlayerPrefs.SetInt("ReviveCharges", PlayerPrefs.GetInt("ReviveCharges") - 1);
             attEffect.playEffect(13, eEffectPos);
+            sound.playClip("revive");
             battleState = BattleState.PLAYERTURN;
             StartCoroutine(PlayerTurn());
         }
@@ -284,9 +308,26 @@ public class BattleMoves : MonoBehaviour
         {
             enemyAnimator.SetTrigger("Attack3");
         }
+        else if (AttackName.Contains("First Decree"))
+        {
+            enemyAnimator.SetTrigger("Attack2");
+        }
+        else if (AttackName.Contains("Second Decree"))
+        {
+            enemyAnimator.SetTrigger("Attack3");
+        }
+        else if (AttackName.Contains("Final Decree"))
+        {
+            enemyAnimator.SetTrigger("Attack4");
+        }
         else if (AttackName.Contains("Strike") || AttackName.Contains("Heavy") || AttackName.Contains("Strong"))
         {
             enemyAnimator.SetTrigger("Attack2");
+        }
+        else if (AttackName.Contains("Shield"))
+        {
+            enemyAnimator.SetBool("Shield", true);
+            shielding = true;
         }
         else
         {
@@ -305,10 +346,12 @@ public class BattleMoves : MonoBehaviour
             if (attackName == previousAttack)
             {
                 playerStats.battleAttack += 7;
+                sound.playClip("atkbuff");
             }
             else
             {
                 playerStats.battleAttack = 0;
+                sound.playClip("debuff");
             }
         }
         else if (signatureAbility == "Duelist" && abilityName == "Duelist")
@@ -327,10 +370,12 @@ public class BattleMoves : MonoBehaviour
         {//In Bloom
             PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("HealthRating") + PlayerPrefs.GetInt("EnemiesDefeated") + 4);
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") + PlayerPrefs.GetInt("EnemiesDefeated") + 4);
+            sound.playClip("potion");
         }
         else if (signatureAbility == "Mayday" && abilityName == "Mayday")
         {//Mayday
             playerStats.battleDefence += 5 + PlayerPrefs.GetInt("EnemiesDefeated");
+            sound.playClip("atkbuff");
         }
         else if (signatureAbility == "Fearless" && abilityName == "Fearless" && enemy != null)
         {//Fearless
@@ -363,6 +408,7 @@ public class BattleMoves : MonoBehaviour
         }
 
         Invoke(attackName, 0f);
+        shielding = false;
         checkAbility("Elementalist");
 
         while (!moveFinished)
@@ -390,7 +436,9 @@ public class BattleMoves : MonoBehaviour
     }
     IEnumerator EnemyTurn()
     {//Pick a random attack from the enemies moveset
+        enemyAnimator.SetBool("Shield", false);
         turnDescription.text = "Enemy's turn";
+        moveDescription.text = "";
         checkHP();
         yield return new WaitForSeconds(1);
         turnFinished = false;
@@ -399,8 +447,20 @@ public class BattleMoves : MonoBehaviour
         
         while (attackName == null || attackName == "")
         {
-
-            attackName = moveSet[Random.Range(0, 4)];
+            if (enemyStats.enemyMoveSet.Contains("TheKing") && enemyStats.EcurrentHealth < (enemyStats.EmaxHealth / 2) && kingCounter < 3)
+            {
+                kingCounter += 1;
+                attackName = moveSet[kingCounter];
+            }
+            else if (enemyStats.enemyMoveSet.Contains("TheKing"))
+            {
+                attackName = moveSet[0];
+                kingCounter = 0;
+            }
+            else
+            {
+                attackName = moveSet[Random.Range(0, 4)];
+            }
             yield return null;
         }
 
@@ -441,6 +501,7 @@ public class BattleMoves : MonoBehaviour
         {
             Debug.Log("Attack Dodged!");
             playerAnimator.SetTrigger("Dodge");
+            sound.playClip("dodge");
             dodged = false;
             moveFinished = true;
         }
@@ -481,15 +542,15 @@ public class BattleMoves : MonoBehaviour
         // check if we won
         if (battleState == BattleState.WIN && enemyStats.enemyMoveSet.Contains("BringerOfDeath"))
         {     
-            //BuffAllStats();
             PlayerPrefs.SetInt("EnemiesDefeated", PlayerPrefs.GetInt("EnemiesDefeated") + 1);
             mapSelectedWin();
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(2);
             Destroy(enemy.gameObject);
             PlayerPrefs.SetInt("NextScene", 3);
         }
         else if (battleState == BattleState.WIN)
         {
+            sound.playClip("battleVictory");
             BuffAllStats();
             PlayerPrefs.SetInt("EnemiesDefeated", PlayerPrefs.GetInt("EnemiesDefeated") + 1);
             int potionChance;
@@ -497,36 +558,32 @@ public class BattleMoves : MonoBehaviour
             if (potionChance == 0 || potionChance == 1)
             {
                 PlayerPrefs.SetInt("HealthPotions", PlayerPrefs.GetInt("HealthPotions") + 1);
+                moveDescription.text = "A Health Potion was found!";
             }
             else if (potionChance == 2 || potionChance == 3)
             {
                 PlayerPrefs.SetInt("ManaPotions", PlayerPrefs.GetInt("ManaPotions") + 1);
+                moveDescription.text = "A Mana Potion was found!";
             }
             else if (potionChance == 4)
             {
                 PlayerPrefs.SetInt("SpecialPotions", PlayerPrefs.GetInt("SpecialPotions") + 1);
+                moveDescription.text = "A Special Potion was found!";
             }
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(2);
             Destroy(enemy.gameObject);
             PlayerPrefs.SetInt("NextScene", 0);
         }
-        // otherwise check if we lost
-        // You probably want to display some kind of
-        // 'Game Over' screen to communicate to the 
-        // player that the game is lost
         else if (battleState == BattleState.LOST)
-        {
-            // you may wish to display some kind
-            // of message or play a sad tune here!
-            
-            yield return new WaitForSeconds(1);
+        {//check if we lost
+            sound.playClip("death");
+            yield return new WaitForSeconds(2);
             if(enemyStats.enemyMoveSet.Contains("BringerOfDeath"))
             {
                 PlayerPrefs.SetInt("PlayerRun", PlayerPrefs.GetInt("PlayerRun") + 1);
             }
             Destroy(enemy.gameObject);
             PlayerPrefs.SetInt("NextScene", 2);
-            //SceneManager.UnloadSceneAsync(1);
         }
     }
 
@@ -792,22 +849,22 @@ public class BattleMoves : MonoBehaviour
 
     public void Slash()
     {
-        if(battleState == BattleState.PLAYERTURN)
+        if(battleState == BattleState.PLAYERTURN && !shielding)
         {
             enemyStats.EcurrentHealth -= Math.Abs((8 + calcAttackValue() - calcDefenceValue()));
             attEffect.playEffect(45, pEffectPos);
-            moveFinished = true;
         }
         else if (battleState == BattleState.ENEMYTURN)
         {
             PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - Math.Abs((8 + calcAttackValue() - calcDefenceValue()))));
             attEffect.playEffect(45, eEffectPos);
-            moveFinished = true;
         }
+        moveFinished = true;
+        sound.playClip("attack");
     }
     public void SpearThrust()
     {
-        if (battleState == BattleState.PLAYERTURN)
+        if (battleState == BattleState.PLAYERTURN && !shielding)
         {
             int critChance = Random.Range(1, 4);
             if(critChance == 3)
@@ -820,6 +877,7 @@ public class BattleMoves : MonoBehaviour
             }
             attEffect.playEffect(4, pEffectPos);
             moveFinished = true;
+            sound.playClip("heavyatk");
         }
     }
     public void SimpleSpell()
@@ -857,7 +915,7 @@ public class BattleMoves : MonoBehaviour
             this.GetComponent<StatusEffects>().chooseBuff(0);
             this.GetComponent<StatusEffects>().ApplyBuff(enemy.transform.position);
         }
-
+        sound.playClip("atkbuff");
         moveFinished = true;
     }
     public void DefenceBuff()
@@ -883,11 +941,12 @@ public class BattleMoves : MonoBehaviour
             this.GetComponent<StatusEffects>().chooseBuff(1);
             this.GetComponent<StatusEffects>().ApplyBuff(enemy.transform.position);
         }
+        sound.playClip("atkbuff");
         moveFinished = true;
     }
     public void FireSlash()
     {//Increase users attack after attacking
-        if (battleState == BattleState.PLAYERTURN)
+        if (battleState == BattleState.PLAYERTURN && !shielding)
         {
             enemyStats.EcurrentHealth -= Math.Abs((8 + calcAttackValue() - calcDefenceValue()));
             if (signatureAbility == "Snowball")
@@ -903,6 +962,7 @@ public class BattleMoves : MonoBehaviour
             attEffect.playEffect(20, pEffectPos);
             this.GetComponent<StatusEffects>().chooseBuff(0);
             this.GetComponent<StatusEffects>().ApplyBuff(player.transform.position);
+            moveDescription.text = "Player's attack increased!";
         }
         else if (battleState == BattleState.ENEMYTURN)
         {
@@ -911,12 +971,14 @@ public class BattleMoves : MonoBehaviour
             attEffect.playEffect(20, eEffectPos);
             this.GetComponent<StatusEffects>().chooseBuff(0);
             this.GetComponent<StatusEffects>().ApplyBuff(enemy.transform.position);
+            moveDescription.text = "Enemies' attack increased!";
         }
+        sound.playClip("fireatk");
         moveFinished = true;
     }
     public void ThunderStrike()
     {//If this is the first move used it does additional damage, otherwise does damage based on users speed
-        if (battleState == BattleState.PLAYERTURN)
+        if (battleState == BattleState.PLAYERTURN && !shielding)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 10);
             attackManaCost = 10;
@@ -942,29 +1004,34 @@ public class BattleMoves : MonoBehaviour
             }
             attEffect.playEffect(28, eEffectPos);
         }
+        sound.playClip("thunderatk");
         moveFinished = true;
     }
     public void FreezingStrike()
     {//Lower the opponents attack
-        if (battleState == BattleState.PLAYERTURN)
+        if (battleState == BattleState.PLAYERTURN && !shielding)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 10);
             attackManaCost = 10;
             enemyStats.EcurrentHealth -= Math.Abs((9 + calcAttackValue() - calcDefenceValue()));
             enemyStats.battleAttack -= 10;
             attEffect.playEffect(46, pEffectPos);
+            moveDescription.text = "Enemies' attack decreased!";
         }
         else if (battleState == BattleState.ENEMYTURN)
         {
             PlayerPrefs.SetInt("HealthRating", Math.Abs((playerStats.currentHealth - (9 + calcAttackValue() - calcDefenceValue()))));
             playerStats.battleAttack -= 10;
             attEffect.playEffect(46, eEffectPos);
+            moveDescription.text = "Player's attack decreased!";
         }
+        sound.playClip("iceatk");
+        Invoke("debuffSound", 0.5f);
         moveFinished = true;
     }
     public void HealingStrike()
     {//Heal the user for a percentage of the damage dealt
-        if (battleState == BattleState.PLAYERTURN)
+        if (battleState == BattleState.PLAYERTURN && !shielding)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 12);
             attackManaCost = 12;
@@ -978,11 +1045,12 @@ public class BattleMoves : MonoBehaviour
             enemyStats.EcurrentHealth += Math.Abs((7 + (calcAttackValue() - calcDefenceValue()) / 2));
             attEffect.playEffect(33, eEffectPos);
         }
+        sound.playClip("absorb");
         moveFinished = true;
     }
     public void HeavyStrike()
     {//Perform a heavy attack
-        if (battleState == BattleState.PLAYERTURN)
+        if (battleState == BattleState.PLAYERTURN && !shielding)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 15);
             attackManaCost = 15;
@@ -994,29 +1062,31 @@ public class BattleMoves : MonoBehaviour
             PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - Math.Abs((17 + calcAttackValue() - calcDefenceValue()))));
             attEffect.playEffect(49, eEffectPos);
         }
+        sound.playClip("heavyatk");
         moveFinished = true;
     }
     public void DoubleStrike()
     {//Hit the opponent 2 times
-        if (battleState == BattleState.PLAYERTURN)
+        if (battleState == BattleState.PLAYERTURN && !shielding)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 8);
             attackManaCost = 8;
             enemyStats.EcurrentHealth -= Math.Abs((12 + calcAttackValue() - calcDefenceValue()));
             attEffect.playEffect(3, pEffectPos);
-            Invoke("addAtt", 0.5f);
+            Invoke("addAtt", 0.2f);
         }
         else if (battleState == BattleState.ENEMYTURN)
         {
             PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - Math.Abs((12 + calcAttackValue() - calcDefenceValue()))));
             attEffect.playEffect(3, eEffectPos);
-            Invoke("addAtt", 0.5f);
+            Invoke("addAtt", 0.2f);
         }
+        sound.playClip("heavyatk");
         moveFinished = true;
     }
     public void TripleStrike()
     {//Hit the opponent 3 times
-        if (battleState == BattleState.PLAYERTURN)
+        if (battleState == BattleState.PLAYERTURN && !shielding)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 15);
             attackManaCost = 15;
@@ -1032,6 +1102,8 @@ public class BattleMoves : MonoBehaviour
             Invoke("addAtt", 0.2f);
             Invoke("addAtt", 0.2f);
         }
+        sound.playClip("heavyatk");
+        moveFinished = true;
     }
     public void addAtt()
     {
@@ -1044,22 +1116,30 @@ public class BattleMoves : MonoBehaviour
             attEffect.playEffect(3, eEffectPos);
         }
     }
+    public void debuffSound()
+    {
+        sound.playClip("debuff");
+    }
     public void ToxicSlash()
     {//Lower opponents defence
-        if (battleState == BattleState.PLAYERTURN)
+        if (battleState == BattleState.PLAYERTURN && !shielding)
         {
             PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("ManaRating") - 10);
             attackManaCost = 10;
             enemyStats.EcurrentHealth -= Math.Abs((7 + calcAttackValue() - calcDefenceValue()));
             enemyStats.battleDefence -= 15;
             attEffect.playEffect(9, pEffectPos);
+            moveDescription.text = "Enemnies' defence decreased!";
         }
         else if (battleState == BattleState.ENEMYTURN)
         {
             PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - Math.Abs((7 + calcAttackValue() - calcDefenceValue()))));
             playerStats.battleDefence -= 15;
             attEffect.playEffect(9, eEffectPos);
+            moveDescription.text = "Player's defence decreased!";
         }
+        sound.playClip("toxicatk");
+        Invoke("debuffSound", 0.5f);
         moveFinished = true;
     }
     public void SoulSiphon()
@@ -1071,6 +1151,7 @@ public class BattleMoves : MonoBehaviour
             enemyStats.EcurrentHealth += Math.Abs((6 + (calcAttackValue() - calcDefenceValue()) / 2));
             attEffect.playEffect(14, eEffectPos);
         }
+        sound.playClip("absorb");
         moveFinished = true;
     }
     public void DeathSlash()
@@ -1080,6 +1161,90 @@ public class BattleMoves : MonoBehaviour
             PlayerPrefs.SetInt("HealthRating", Mathf.RoundToInt(playerStats.currentHealth / 2));
             attEffect.playEffect(36, eEffectPos);
         }
+        sound.playClip("heavyatk");
+        moveFinished = true;
+    }
+    public void DoubleSlash()
+    {//Lower the targets attack and defence
+        if (battleState == BattleState.ENEMYTURN)
+        {
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - Math.Abs((9 + calcAttackValue() - calcDefenceValue()))));
+            playerStats.battleAttack -= 5;
+            playerStats.battleDefence -= 5;
+            attEffect.playEffect(3, eEffectPos);
+            Invoke("addAtt", 0.2f);
+            moveDescription.text = "Attack and Defence lowered!";
+        }
+        sound.playClip("heavyatk");
+        moveFinished = true;
+    }
+    public void TripleSlash()
+    {//
+        if (battleState == BattleState.ENEMYTURN)
+        {
+            PlayerPrefs.SetInt("HealthRating", (playerStats.currentHealth - Math.Abs((10 + calcAttackValue() - calcDefenceValue()))));
+            attEffect.playEffect(3, eEffectPos);
+            Invoke("addAtt", 0.2f);
+            Invoke("addAtt", 0.2f);
+        }
+        sound.playClip("heavyatk");
+        moveFinished = true;
+    }
+    public void ShieldBrace()
+    {//Take 0 damage from next physical attack
+        if (battleState == BattleState.ENEMYTURN)
+        {
+            moveDescription.text = "User is protected against next physical attack";
+        }
+        sound.playClip("atkbuff");
+        moveFinished = true;
+    }
+    public void RoyalRuse()
+    {//Increase the players atk and hp and lower their defence and mana
+        if (battleState == BattleState.ENEMYTURN)
+        {
+            PlayerPrefs.SetInt("HealthRating", playerStats.currentHealth + 9);
+            PlayerPrefs.SetInt("ManaRating", playerStats.currentMana - 9);
+            playerStats.battleDefence -= 9;
+            attEffect.playEffect(36, eEffectPos);
+            moveDescription.text = "Increased health + attack / Decreased mana + defence";
+        }
+        sound.playClip("heavyatk");
+        moveFinished = true;
+    }
+    public void FirstDecree()
+    {//Takes all of the players potions
+        if (battleState == BattleState.ENEMYTURN)
+        {
+            PlayerPrefs.SetInt("HealthPotions", 0);
+            PlayerPrefs.SetInt("ManaPotions", 0);
+            PlayerPrefs.SetInt("SpecialPotions", 0);
+            attEffect.playEffect(36, eEffectPos);
+            moveDescription.text = "No more potions!";
+        }
+        sound.playClip("heavyatk");
+        moveFinished = true;
+    }
+    public void SecondDecree()
+    {//Take all of the players health
+        if (battleState == BattleState.ENEMYTURN)
+        {
+            PlayerPrefs.SetInt("HealthRating", 1);
+            attEffect.playEffect(36, eEffectPos);
+            moveDescription.text = "Your life belongs to me!";
+        }
+        sound.playClip("heavyatk");
+        moveFinished = true;
+    }
+    public void FinalDecree()
+    {//Deal 1 damage to the player
+        if (battleState == BattleState.ENEMYTURN)
+        {
+            PlayerPrefs.SetInt("HealthRating", playerStats.currentHealth - 1);
+            attEffect.playEffect(36, eEffectPos);
+            moveDescription.text = "Bow down before The King!";
+        }
+        sound.playClip("heavyatk");
         moveFinished = true;
     }
     public void BuffAllStats()
@@ -1185,10 +1350,10 @@ public class BattleMoves : MonoBehaviour
             sound.playClip("declineClick");
         }
     }
-    public void PlayerHit()
-    {//Block the next attack
-        hit = true;
-    }
+    //public void PlayerHit()
+    //{//Block the next attack
+    //    hit = true;
+    //}
     public void SetInt(string KeyName, int Value)
     {
         PlayerPrefs.SetInt(KeyName, Value);

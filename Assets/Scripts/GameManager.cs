@@ -12,6 +12,14 @@ public class GameManager : MonoBehaviour
     public GameObject player, sceneObjects, battleObjects, diceObject, menuCanvas, chestCanvas, shopCanvas, buffCanvas, statueBouqet1, statueBouqet2;
     public Text map1Wins, map2Wins, map3Wins;
     public int m1wins, m2wins, m3wins;
+
+    public GameObject characterSelect, mapSelect;
+    public string characterSelected, mapSelected;
+    bool charChosen;
+    public Button nextButton, beginButton;
+    string sceneName;
+    public Button map3, char3;
+    public Image mapImage3, playerImage3;
     PlayerMovement playerM;
     SoundScript sound;
     AudioSource myAudio;
@@ -23,9 +31,14 @@ public class GameManager : MonoBehaviour
         {
             playerM = player.GetComponent<PlayerMovement>();
         }
-        //PlayerPrefs.SetString("MapWins", "Map1Map1Map3Map2Map2Map2");
-        foreach (var ch in PlayerPrefs.GetString("MapWins"))
+        Scene scene = SceneManager.GetActiveScene();
+        sceneName = scene.name;
+        if (sceneName == "StartScene")
         {
+            deleteAllKeys();
+        }
+        foreach (var ch in PlayerPrefs.GetString("MapWins"))
+        {//Show each maps wins
             if (ch.ToString().Contains("1"))
             {
                 m1wins += 1;
@@ -39,6 +52,13 @@ public class GameManager : MonoBehaviour
                 m3wins += 1;
             }
         }
+        if(m1wins >= 1 && m2wins >= 1)
+        {//Unlock a new map and character after finishing the first 2 maps
+            map3.interactable = true;
+            char3.interactable = true;
+            mapImage3.color = Color.white;
+            playerImage3.color = Color.white;
+        }
         if (playerM != null)
         {
             playerM.showRoll = true;
@@ -46,8 +66,30 @@ public class GameManager : MonoBehaviour
     }
     void Update()
     {
-        Scene scene = SceneManager.GetActiveScene();
-        if (player == null && scene.name == "StartScene")
+        if (mapSelect != null)
+        {
+            if (mapSelected == "")
+            {
+                nextButton.enabled = false;
+            }
+            else
+            {
+                nextButton.enabled = true;
+            }
+        }
+        if (characterSelect != null)
+        {
+            if (characterSelected == "")
+            {
+                beginButton.enabled = false;
+            }
+            else
+            {
+                beginButton.enabled = true;
+            }
+        }
+
+        if (player == null && sceneName == "StartScene")
         {           
             map1Wins.text = m1wins.ToString();
             map2Wins.text = m2wins.ToString();
@@ -74,7 +116,7 @@ public class GameManager : MonoBehaviour
         if (PlayerPrefs.HasKey("NextScene") && PlayerPrefs.GetInt("NextScene") == 0)
         {
             if (this.GetComponent<TransitionScene>().animationFinished)
-            {//Show the main scene
+            {//Show the map after winning a battle
                 SceneManager.UnloadSceneAsync("BattleScene");
                 activateAll();
                 myAudio.Play();
@@ -90,7 +132,7 @@ public class GameManager : MonoBehaviour
         else if (PlayerPrefs.HasKey("NextScene") && PlayerPrefs.GetInt("NextScene") == 3)
         {
             if (this.GetComponent<TransitionScene>().animationFinished)
-            {//Show the main scene after losing
+            {//Show the victory scene after defeating the boss
                 SceneManager.UnloadSceneAsync("BattleScene");                
                 PlayerPrefs.DeleteKey("NextScene");
                 SceneManager.LoadScene("VictoryScene");
@@ -155,6 +197,66 @@ public class GameManager : MonoBehaviour
             canRoll = true;
         }
     }
+    public void LoadMainScene()
+    {
+        PlayerPrefs.SetString("MapSelected", mapSelected);
+        PlayerPrefs.SetString("CharacterSelected", characterSelected);
+        StartCoroutine(LoadYourAsyncScene());
+    }
+    public void MapSelectCanvas()
+    {
+        mapSelect.SetActive(true);
+    }
+    public void CharacterSelectCanvas()
+    {
+        characterSelect.SetActive(true);
+    }
+    public void QuitGame()
+    {//Close application
+        Application.Quit();
+    }
+    public void CloseCharacterSelect()
+    {
+        characterSelected = "";
+        characterSelect.SetActive(false);
+    }
+    public void CloseMapSelect()
+    {
+        mapSelected = "";
+        mapSelect.SetActive(false);
+    }
+    public void Character1()
+    {
+        characterSelected = "HeroKnight1";
+    }
+    public void Character2()
+    {
+        characterSelected = "HeroKnight2";
+    }
+    public void Character3()
+    {
+        characterSelected = "MartialHero";
+    }
+    public void Character4()
+    {
+        characterSelected = "MedievalWarrior1";
+    }
+    public void Character5()
+    {
+        characterSelected = "MedievalWarrior2";
+    }
+    public void Map1()
+    {
+        mapSelected = "Map1";
+    }
+    public void Map2()
+    {
+        mapSelected = "Map2";
+    }
+    public void Map3()
+    {
+        mapSelected = "Map3";
+    }
     public void UnloadScene()
     {//Unload the additive scene
         PlayerPrefs.SetInt("NextScene", 0);
@@ -210,12 +312,14 @@ public class GameManager : MonoBehaviour
         this.GetComponent<TransitionScene>().animateOutScene();
     }
     public void ExitGame()
-    {
+    {//Return to the starting scene
         SceneManager.LoadScene("StartScene");
     }
     public void deleteAllKeys()
     {
+        string mapW = PlayerPrefs.GetString("MapWins");
         PlayerPrefs.DeleteAll();
+        PlayerPrefs.SetString("MapWins", mapW);
     }
     public void showRoll()
     {
@@ -251,5 +355,21 @@ public class GameManager : MonoBehaviour
     public void DeleteKey(string KeyName)
     {
         PlayerPrefs.DeleteKey(KeyName);
+    }
+
+    IEnumerator LoadYourAsyncScene()
+    {
+        // The Application loads the Scene in the background as the current Scene runs.
+        // This is particularly good for creating loading screens.
+        // You could also load the Scene by using sceneBuildIndex. In this case Scene2 has
+        // a sceneBuildIndex of 1 as shown in Build Settings.
+
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(mapSelected);
+
+        // Wait until the asynchronous scene fully loads
+        while (!asyncLoad.isDone)
+        {
+            yield return null;
+        }
     }
 }

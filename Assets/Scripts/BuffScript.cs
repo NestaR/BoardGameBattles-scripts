@@ -4,23 +4,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
-using UnityEngine.SceneManagement;
 
 public class BuffScript : MonoBehaviour
 {
-    public GameObject buffCanvas, characterSelect, mapSelect;
-    public string optionName, characterSelected, mapSelected;
-    bool charChosen;
-    public Button option1button, option2button, option3button, nextButton, beginButton;
+    public GameObject buffCanvas;
+    public string optionName;
+    public Button option1button, option2button, option3button;
     //Give the player permanent buffs to their stats
-    void Start()
-    {
-        Scene scene = SceneManager.GetActiveScene();
-        if (scene.name == "StartScene")
-        {
-            PlayerPrefs.DeleteAll();
-        }
-    }
     void Update()
     {
         if (PlayerPrefs.HasKey("ReviveCharges") && PlayerPrefs.GetInt("ReviveCharges") < 0)
@@ -37,28 +27,6 @@ public class BuffScript : MonoBehaviour
             {
                 Time.timeScale = 0;
             }
-        }
-        if (mapSelect != null)
-        {
-            if (mapSelected == "")
-            {
-                nextButton.enabled = false;
-            }
-            else
-            {
-                nextButton.enabled = true;
-            }
-        }
-        if (characterSelect != null)
-        {
-            if(characterSelected == "")
-            {
-                beginButton.enabled = false;
-            }
-            else
-            {
-                beginButton.enabled = true;
-            }          
         }
     }
     public void Option1()
@@ -121,81 +89,6 @@ public class BuffScript : MonoBehaviour
         {
             Debug.Log("The key " + KeyName + " does not exist");
             return false;
-        }
-    }
-    public void LoadMainScene()
-    {
-        PlayerPrefs.SetString("MapSelected", mapSelected);
-        PlayerPrefs.SetString("CharacterSelected", characterSelected);
-        StartCoroutine(LoadYourAsyncScene());
-    }
-    public void MapSelectCanvas()
-    {
-        mapSelect.SetActive(true);       
-    }
-    public void CharacterSelectCanvas()
-    {
-        characterSelect.SetActive(true);
-    }
-    public void ExitGame()
-    {
-        Application.Quit();
-    }    
-    public void CloseCharacterSelect()
-    {
-        characterSelected = "";
-        characterSelect.SetActive(false);
-    }
-    public void CloseMapSelect()
-    {
-        mapSelected = "";
-        mapSelect.SetActive(false);
-    }
-    public void Character1()
-    {
-        characterSelected = "HeroKnight1";
-    }
-    public void Character2()
-    {
-        characterSelected = "HeroKnight2";
-    }
-    public void Character3()
-    {
-        characterSelected = "MartialHero";
-    }
-    public void Character4()
-    {
-        characterSelected = "MedievalWarrior1";
-    }
-    public void Character5()
-    {
-        characterSelected = "MedievalWarrior2";
-    }
-    public void Map1()
-    {
-        mapSelected = "Map1";
-    }
-    public void Map2()
-    {
-        mapSelected = "Map2";
-    }
-    public void Map3()
-    {
-        mapSelected = "Map3";
-    }
-    IEnumerator LoadYourAsyncScene()
-    {
-        // The Application loads the Scene in the background as the current Scene runs.
-        // This is particularly good for creating loading screens.
-        // You could also load the Scene by using sceneBuildIndex. In this case Scene2 has
-        // a sceneBuildIndex of 1 as shown in Build Settings.
-
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(mapSelected);
-
-        // Wait until the asynchronous scene fully loads
-        while (!asyncLoad.isDone)
-        {
-            yield return null;
         }
     }
 }
