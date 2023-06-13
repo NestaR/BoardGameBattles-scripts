@@ -11,6 +11,7 @@ public class EnemyScript : MonoBehaviour
     BattleMoves battleMoves;
     PlayerStats enemyStats;
     public Text EcurrentBattleHP, EmaxBattleHP;
+    SpriteRenderer enemySprite;
     // Start is called before the first frame update
     void Awake()
     {
@@ -37,7 +38,13 @@ public class EnemyScript : MonoBehaviour
             enemyStats = enemy.transform.GetChild(0).GetComponent<PlayerStats>();
             EcurrentBattleHP.text = enemyStats.EcurrentHealth.ToString();
             EmaxBattleHP.text = enemyStats.EmaxHealth.ToString();
+            enemySprite = GetComponentInChildren<SpriteRenderer>();
+            if (PlayerPrefs.GetString("CurrentTile").Contains("Red"))
+            {
+                enemySprite.color = new Color(1,0,0,1);
+            }
         }
+
     }
     public void spawnEnemyMap1()
     {
@@ -64,11 +71,11 @@ public class EnemyScript : MonoBehaviour
     {
         if (PlayerPrefs.GetString("CurrentTile") == "Green1" || PlayerPrefs.GetString("CurrentTile") == "Red1")
         {
-            Instantiate(enemies[5], this.transform.position, Quaternion.identity, this.transform);
+            Instantiate(enemies[4], this.transform.position, Quaternion.identity, this.transform);
         }
         else if (PlayerPrefs.GetString("CurrentTile") == "Green2" || PlayerPrefs.GetString("CurrentTile") == "Red2")
         {
-            Instantiate(enemies[4], this.transform.position, Quaternion.identity, this.transform);
+            Instantiate(enemies[5], this.transform.position, Quaternion.identity, this.transform);
         }
         else if (PlayerPrefs.GetString("CurrentTile") == "Black")
         {
