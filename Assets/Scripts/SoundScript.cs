@@ -8,6 +8,7 @@ public class SoundScript : MonoBehaviour
     public GameObject greenAudio, redAudio, blackAudio;
     public AudioClip attack, hit, death, battleVictory, gameVictory, potion, revive, declineClick, confirmClick, chestOpen, shrine, run, mouseHover;
     public AudioClip menuPause, menuUnpause, diceRoll, encounter, dodge, atkbuff, debuff, fireatk, iceatk, thunderatk, toxicatk, absorb;
+    public AudioClip firespell, waterspell, rockspell, lightspell, strongatk;
     bool playing;
     // Start is called before the first frame update
     void Start()
@@ -135,6 +136,26 @@ public class SoundScript : MonoBehaviour
         else if (soundName.Contains("revive"))
         {
             audioSource.PlayOneShot(revive, 1);
+        }
+        else if (soundName.Contains("firespell"))
+        {
+            audioSource.PlayOneShot(firespell, 1);
+        }
+        else if (soundName.Contains("waterspell"))
+        {
+            audioSource.PlayOneShot(waterspell, 1);
+        }
+        else if (soundName.Contains("rockspell"))
+        {
+            audioSource.PlayOneShot(rockspell, 1);
+        }
+        else if (soundName.Contains("lightspell"))
+        {
+            audioSource.PlayOneShot(lightspell, 1);
+        }
+        else if (soundName.Contains("strongatk"))
+        {
+            audioSource.PlayOneShot(strongatk, 1);
         }
     }
 }

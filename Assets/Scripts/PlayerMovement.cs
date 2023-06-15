@@ -270,6 +270,36 @@ public class PlayerMovement : MonoBehaviour
                 endReached = false;
             }
         }
+        else if (PlayerPrefs.GetString("MapSelected").Contains("3"))
+        {
+            if (currentTileNumber >= (numTiles - 1))
+            {//If the player rolls past the last tile stop them at the end
+                nextPos = new Vector3(tilePositions[numTiles - 1].transform.position.x, 0.3864222f, tilePositions[numTiles - 1].transform.position.z);
+                endReached = true;
+                gameManager.GetComponent<GameManager>().canRoll = false;
+                //0.6135788
+            }
+            else if (currentTileNumber == (7))
+            {//Trigger buff canvas
+                nextPos = new Vector3(tilePositions[8].transform.position.x, 0.3864222f, tilePositions[8].transform.position.z);
+                counter -= 1;
+                //0.6135788
+                endReached = false;
+            }
+            else if (currentTileNumber == (14))
+            {//Trigger buff canvas
+                nextPos = new Vector3(tilePositions[15].transform.position.x, 0.3864222f, tilePositions[15].transform.position.z);
+                counter -= 1;
+                endReached = false;
+                //0.6135788
+            }
+            else
+            {
+                currentTileNumber += 1;
+                nextPos = new Vector3(tilePositions[currentTileNumber].transform.position.x, 0.3864222f, tilePositions[currentTileNumber].transform.position.z);
+                endReached = false;
+            }
+        }
     }
 
     public void playerLost()
@@ -278,8 +308,8 @@ public class PlayerMovement : MonoBehaviour
         currentTileNumber = 0;
         PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("MaxHealthRating"));
         gameManager.GetComponent<GameManager>().canRoll = true;
-
-        if(player.transform.eulerAngles.y != 0)
+        showRoll = true;
+        if(flipped1 || flipped2 || flipped3)
         {//Fix the players rotation on respawn
             Vector3 newRotation = new Vector3(0, 0, 0);
             transform.eulerAngles = newRotation;

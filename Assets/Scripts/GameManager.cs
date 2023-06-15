@@ -9,8 +9,8 @@ public class GameManager : MonoBehaviour
 {
     public bool canRoll, mouseEnabled;
     public string tileColour;
-    public GameObject player, sceneObjects, battleObjects, diceObject, menuCanvas, chestCanvas, shopCanvas, buffCanvas, statueBouqet1, statueBouqet2;
-    public Text map1Wins, map2Wins, map3Wins;
+    public GameObject player, sceneObjects, battleObjects, diceObject, menuCanvas, chestCanvas, helpCanvas, buffCanvas, statueBouqet1, statueBouqet2;
+    public Text map1Wins, map2Wins, map3Wins, enemiesDefeated;
     public int m1wins, m2wins, m3wins;
 
     public GameObject characterSelect, mapSelect;
@@ -97,15 +97,11 @@ public class GameManager : MonoBehaviour
         }
         if (Input.GetKeyDown("m") && !menuCanvas.activeSelf && this.GetComponent<TransitionScene>().animationFinished)
         {//Open menu panel
-            menuCanvas.SetActive(true);
-            sound.playClip("menuPause");
-            Time.timeScale = 0;
+            ShowMenu();
         }
         else if (Input.GetKeyDown("m") && menuCanvas.activeSelf)
         {//Close menu panel
-            menuCanvas.SetActive(false);
-            sound.playClip("menuUnpause");
-            Time.timeScale = 1;
+            CloseMenu();
         }
         if (Input.GetMouseButtonUp(1) && canRoll)
         {
@@ -325,11 +321,33 @@ public class GameManager : MonoBehaviour
     {
         playerM.showRoll = true;
     }
+    public void ShowMenu()
+    {
+        menuCanvas.SetActive(true);
+        sound.playClip("menuPause");
+        Time.timeScale = 0;
+        enemiesDefeated.text = PlayerPrefs.GetInt("EnemiesDefeated").ToString();
+    }
     public void CloseMenu()
     {
         menuCanvas.SetActive(false);
         sound.playClip("menuUnpause");
         Time.timeScale = 1;
+    }
+    public void ShowHelp()
+    {
+        if(!helpCanvas.activeSelf)
+        {
+            helpCanvas.SetActive(true);
+            sound.playClip("menuPause");
+            Time.timeScale = 0;
+        }
+        else
+        {
+            helpCanvas.SetActive(false);
+            sound.playClip("menuUnpause");
+            Time.timeScale = 1;
+        }
     }
     public void SetInt(string KeyName, int Value)
     {

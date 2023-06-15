@@ -33,49 +33,49 @@ public class Tooltip : MonoBehaviour
         string tip;
         if (name.Contains("Fire Slash"))
         {
-            nameText.text += " - 8 / 10MP";
+            nameText.text += " - 8 / 8MP";
             tip = "Imbue your weapon with flames to gain an attack buff after the move ends";
             return tip;
         }
         else if (name.Contains("Thunder Strike"))
         {
-            nameText.text += " - 10|15 / 10MP";
+            nameText.text += " - 10|15 / 8MP";
             tip = "Strike your opponent with a thunderous force. Deals more damage if used at the beggining of the turn";
             return tip;
         }
         else if (name.Contains("Freezing Strike"))
         {
-            nameText.text += " - 9 / 10MP";
+            nameText.text += " - 9 / 8MP";
             tip = "The chilling effects from this strike lowers the opponents attack";
             return tip;
         }
         else if (name.Contains("Toxic Slash"))
         {
-            nameText.text += " - 7 / 10MP";
+            nameText.text += " - 7 / 8MP";
             tip = "A venomous attack that lowers the opponents defences";
             return tip;
         }
         else if (name.Contains("Double Strike"))
         {
-            nameText.text += " - 12 / 8MP";
+            nameText.text += " - 11 / 3MP";
             tip = "Strike the user twice";
             return tip;
         }
         else if (name.Contains("Triple Strike"))
         {
-            nameText.text += " - 15 / 15MP";
+            nameText.text += " - 15 / 9MP";
             tip = "Strike the user 3 times";
             return tip;
         }
         else if (name.Contains("Heavy Strike"))
         {
-            nameText.text += " - 17 / 15MP";
+            nameText.text += " - 13 / 6MP";
             tip = "Strike the user with tremendous force";
             return tip;
         }
         else if (name.Contains("Healing Strike"))
         {
-            nameText.text += " - 7 / 12MP";
+            nameText.text += " - 7 / 10MP";
             tip = "Divine energies restore the users health with this attack";
             return tip;
         }
@@ -101,6 +101,42 @@ public class Tooltip : MonoBehaviour
         {
             nameText.text += " - 8|12";
             tip = "Thrust at your opponent with precise accuracy. Has a 33% chance to crit";
+            return tip;
+        }
+        else if (name.Contains("Radiant Flicker"))
+        {
+            nameText.text += " - 8 - 3MP";
+            tip = "Cast a beam of light";
+            return tip;
+        }
+        else if (name.Contains("Luminous Spark"))
+        {
+            nameText.text += " - 12 - 9MP";
+            tip = "Cast a strong ball of energy";
+            return tip;
+        }
+        else if (name.Contains("Eruption"))
+        {
+            nameText.text += " - 0.5*BA - 10MP";
+            tip = "Consume your battle attack to increase damage";
+            return tip;
+        }
+        else if (name.Contains("Thunderball"))
+        {
+            nameText.text += " - 2+S - 8MP";
+            tip = "Deals bonus damage based on speed";
+            return tip;
+        }
+        else if (name.Contains("Plunge"))
+        {
+            nameText.text += " - 8 - 8MP";
+            tip = "Cleanse targets battle attack";
+            return tip;
+        }
+        else if (name.Contains("Rock Blast"))
+        {
+            nameText.text += " - 8 - 8MP";
+            tip = "Destroy targets battle defence";
             return tip;
         }
         else if (name.Contains("Signature Ability"))

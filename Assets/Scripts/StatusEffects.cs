@@ -121,7 +121,7 @@ public class StatusEffects : MonoBehaviour
         CleanAuras();
         if (buffs[buffIndex].auraPrefab != null)
         {
-            StartCoroutine(SpawnAura(buffs[buffIndex].auraPrefab, newPosition, buffs[buffIndex].auraDelay));
+            //StartCoroutine(SpawnAura(buffs[buffIndex].auraPrefab, newPosition, buffs[buffIndex].auraDelay));
         }
 
         //RefreshStatusUI(0);
@@ -194,7 +194,7 @@ public class StatusEffects : MonoBehaviour
         CleanAuras();
         if (debuffs[debuffIndex].auraPrefab != null)
         {
-            StartCoroutine(SpawnAura(debuffs[debuffIndex].auraPrefab, newPosition, debuffs[debuffIndex].auraDelay));
+            //StartCoroutine(SpawnAura(debuffs[debuffIndex].auraPrefab, newPosition, debuffs[debuffIndex].auraDelay));
         }
 
     }
@@ -253,7 +253,7 @@ public class StatusEffects : MonoBehaviour
         CleanAuras();
         if (ailments[ailmentIndex].auraPrefab != null)
         {
-            StartCoroutine(SpawnAura(ailments[ailmentIndex].auraPrefab, newPosition, ailments[ailmentIndex].auraDelay));
+            //StartCoroutine(SpawnAura(ailments[ailmentIndex].auraPrefab, newPosition, ailments[ailmentIndex].auraDelay));
         }
     }
 
