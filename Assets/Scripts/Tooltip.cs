@@ -29,7 +29,7 @@ public class Tooltip : MonoBehaviour
         HideTip();
     }
     public string changeTip(string name, string replaceTip)
-    {
+    {//Show a description for each move
         string tip;
         if (name.Contains("Fire Slash"))
         {
@@ -105,37 +105,37 @@ public class Tooltip : MonoBehaviour
         }
         else if (name.Contains("Radiant Flicker"))
         {
-            nameText.text += " - 8 - 3MP";
+            nameText.text += " - 8 / 3MP";
             tip = "Cast a beam of light";
             return tip;
         }
         else if (name.Contains("Luminous Spark"))
         {
-            nameText.text += " - 12 - 9MP";
+            nameText.text += " - 12 / 9MP";
             tip = "Cast a strong ball of energy";
             return tip;
         }
         else if (name.Contains("Eruption"))
         {
-            nameText.text += " - 0.5*BA - 10MP";
+            nameText.text += " - 0.5*BA / 10MP";
             tip = "Consume your battle attack to increase damage";
             return tip;
         }
         else if (name.Contains("Thunderball"))
         {
-            nameText.text += " - 2+S - 8MP";
+            nameText.text += " - 2+S / 8MP";
             tip = "Deals bonus damage based on speed";
             return tip;
         }
         else if (name.Contains("Plunge"))
         {
-            nameText.text += " - 8 - 8MP";
+            nameText.text += " - 8 / 8MP";
             tip = "Cleanse targets battle attack";
             return tip;
         }
         else if (name.Contains("Rock Blast"))
         {
-            nameText.text += " - 8 - 8MP";
+            nameText.text += " - 8 / 8MP";
             tip = "Destroy targets battle defence";
             return tip;
         }
@@ -162,13 +162,13 @@ public class Tooltip : MonoBehaviour
             else if (PlayerPrefs.GetString("SignatureAbility").Contains("Roundabout"))
             {//Using an attack restores health and mana
                 nameText.text = "Roundabout";
-                tip = "Using the same attack previously used boosts battle attack by 7 + (" + PlayerPrefs.GetInt("EnemiesDefeated") + ")";
+                tip = "Using the same attack previously used boosts battle attack by 11 + (" + PlayerPrefs.GetInt("EnemiesDefeated") + ")";
                 return tip;
             }
             else if (PlayerPrefs.GetString("SignatureAbility").Contains("Duelist"))
             {//Chance of avoiding an attack
                 nameText.text = "Duelist";
-                tip = "Enemy attacks have a 32% chance to be avoided";
+                tip = "Slash and Strike attacks have a 12% + (" + PlayerPrefs.GetInt("EnemiesDefeated") + "%) chance to be avoided";
                 return tip;
             }
             else
@@ -214,9 +214,8 @@ public class Tooltip : MonoBehaviour
         nameText.text = name;
         
         tipText.text = changeTip(name, tip);
-        
-        //tipWindow.sizeDelta = new Vector2(tipText.preferredWidth > 1200 ? 1200 : tipText.preferredWidth, nameText.preferredHeight + tipText.preferredHeight);
 
+        //tipWindow.sizeDelta = new Vector2(tipText.preferredWidth > 1200 ? 1200 : tipText.preferredWidth, nameText.preferredHeight + tipText.preferredHeight);
         tipWindow.gameObject.SetActive(true);
         //tipWindow.transform.position = new Vector2(mousePos.x, mousePos.y);
     }

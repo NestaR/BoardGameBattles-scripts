@@ -16,7 +16,7 @@ public class AttackEffects : MonoBehaviour
 	public int particleNum;
 	//-------------------------------------------------------------
 
-	private GameObject[] ParticleExamples;
+	public GameObject[] ParticleExamples;
 	private int exampleIndex;
 	private bool slowMo;
 	private Vector3 defaultCamPosition;
@@ -35,7 +35,7 @@ public class AttackEffects : MonoBehaviour
 			GameObject child = this.transform.GetChild(i).gameObject;
 			particleExampleList.Add(child);
 		}
-		particleExampleList.Sort( delegate(GameObject o1, GameObject o2) { return o1.name.CompareTo(o2.name); } );
+		//particleExampleList.Sort( delegate(GameObject o1, GameObject o2) { return o1.name.CompareTo(o2.name); } );
 		ParticleExamples = particleExampleList.ToArray();
 		
 		

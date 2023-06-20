@@ -7,10 +7,14 @@ using Random = UnityEngine.Random;
 
 public class BuffScript : MonoBehaviour
 {
-    public GameObject buffCanvas;
+    public GameObject buffCanvas, player;
     public string optionName;
     public Button option1button, option2button, option3button;
     //Give the player permanent buffs to their stats
+    void Start()
+    {
+        player = GameObject.FindWithTag("Player");
+    }
     void Update()
     {
         if (PlayerPrefs.HasKey("ReviveCharges") && PlayerPrefs.GetInt("ReviveCharges") < 0)
@@ -18,47 +22,47 @@ public class BuffScript : MonoBehaviour
             PlayerPrefs.SetInt("ReviveCharges", 0);
         }
         else if (PlayerPrefs.HasKey("ReviveCharges") && PlayerPrefs.GetInt("ReviveCharges") > 3)
-        {
+        {//Limit to 3 revive charges
             PlayerPrefs.SetInt("ReviveCharges", 3);
         }
         if (buffCanvas != null)
         {
             if (buffCanvas.activeSelf == true)
             {
-                Time.timeScale = 0;
+                player.GetComponent<PlayerMovement>().movingPlayer = false;
+                player.GetComponent<PlayerMovement>().stopped = true;
             }
         }
     }
     public void Option1()
-    {
+    {//Buff stats by random amount 1-7
         int attack = PlayerPrefs.GetInt("AttackRating");
-        attack += Random.Range(5, 10);
+        attack += Random.Range(1, 7);
         PlayerPrefs.SetInt("AttackRating", attack);
 
         int defence = PlayerPrefs.GetInt("ArmorRating");
-        defence += Random.Range(4, 9);
+        defence += Random.Range(1, 7);
         PlayerPrefs.SetInt("ArmorRating", defence);
 
         int maxHP = PlayerPrefs.GetInt("MaxHealthRating");
         int HP = PlayerPrefs.GetInt("HealthRating");
-        int increaseHP = Random.Range(1, 4);
+        int increaseHP = Random.Range(1, 7);
         maxHP += increaseHP;
         HP += increaseHP;
         PlayerPrefs.SetInt("HealthRating", HP);
         PlayerPrefs.SetInt("MaxHealthRating", maxHP);
 
-        Time.timeScale = 1;
-        buffCanvas.SetActive(false);
+        CloseBuffCanvas();
     }
     public void Option2()
-    {
+    {//Fully restore players hp and mp
         PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("MaxHealthRating"));
         PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("MaxManaRating"));
-        Time.timeScale = 1;
-        buffCanvas.SetActive(false);
+        
+        CloseBuffCanvas();
     }
     public void Option3()
-    {
+    {//Give player a revive charge
         if(PlayerPrefs.HasKey("ReviveCharges"))
         {
             PlayerPrefs.SetInt("ReviveCharges", PlayerPrefs.GetInt("ReviveCharges") + 1);
@@ -67,8 +71,14 @@ public class BuffScript : MonoBehaviour
         {
             PlayerPrefs.SetInt("ReviveCharges", 1);
         }
-        Time.timeScale = 1;
+
+        CloseBuffCanvas();
+    }
+    public void CloseBuffCanvas()
+    {
         buffCanvas.SetActive(false);
+        player.GetComponent<PlayerMovement>().movingPlayer = true;
+        player.GetComponent<PlayerMovement>().stopped = false;
     }
     public void SetInt(string KeyName, int Value)
     {

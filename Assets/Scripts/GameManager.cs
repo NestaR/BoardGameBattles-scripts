@@ -37,6 +37,7 @@ public class GameManager : MonoBehaviour
         {
             deleteAllKeys();
         }
+        //PlayerPrefs.SetString("MapWins", "");
         foreach (var ch in PlayerPrefs.GetString("MapWins"))
         {//Show each maps wins
             if (ch.ToString().Contains("1"))
@@ -52,7 +53,7 @@ public class GameManager : MonoBehaviour
                 m3wins += 1;
             }
         }
-        if(m1wins >= 1 && m2wins >= 1)
+        if(m1wins >= 1 && m2wins >= 1 && sceneName == "StartScene")
         {//Unlock a new map and character after finishing the first 2 maps
             map3.interactable = true;
             char3.interactable = true;

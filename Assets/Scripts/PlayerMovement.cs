@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -11,10 +12,11 @@ public class PlayerMovement : MonoBehaviour
     public string currentTileColour, movementDirection;
     public int[] destination;
     public Vector3 startPos, nextPos, cameraPos;
-    public bool movingPlayer, finishedMoving, endReached, defeated, victory, showRoll;
+    public bool movingPlayer, finishedMoving, stopped, endReached, defeated, victory, showRoll;
     public float moveTimer;
     bool flipped1, flipped2, flipped3;
     float timer;
+    public Text rollNum;
     private const string PlayerDiceRoll = "PlayerDiceRoll", FinishedRolling = "FinishedRolling";
     Animator playerAnimator;
     SoundScript soundScript;
@@ -33,31 +35,29 @@ public class PlayerMovement : MonoBehaviour
         cameraPos = mainCamera.transform.position;
     }
 
-    void Awake()
-    {
-
-    }
     void Update()
     {
         Invoke("flipPlayer", 1f);
 
         if (showRoll)
-        {
+        {//Move camera to dice roll position
+            rollNum.text = "";
             Vector3 newRotation = new Vector3(16, 0, 0);
             if (Vector3.Distance(mainCamera.transform.position, cameraRollPosition.transform.position) > 0.001f)
             {
-                mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, cameraRollPosition.transform.position, Time.deltaTime * 0.5f);
+                mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, cameraRollPosition.transform.position, Time.deltaTime * 0.3f);
                 mainCamera.transform.eulerAngles = Vector3.Lerp(mainCamera.transform.eulerAngles, newRotation, 0.01f);
             }
 
             mainCamera.transform.eulerAngles = newRotation;
         }
         if (PlayerPrefs.HasKey(PlayerDiceRoll) && !showRoll)
-        {
+        {//Move camera to players position when they move
+            rollNum.text = "You rolled a: " + PlayerPrefs.GetInt(PlayerDiceRoll);
             if (Vector3.Distance(mainCamera.transform.position, cameraPlayerPosition.transform.position) > 0.001f)
             {
-                mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, cameraPlayerPosition.transform.position, 0.1f);
-                mainCamera.transform.eulerAngles = Vector3.Lerp(mainCamera.transform.eulerAngles, transform.eulerAngles, 0.1f);
+                mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, cameraPlayerPosition.transform.position, 0.3f);
+                mainCamera.transform.eulerAngles = Vector3.Lerp(mainCamera.transform.eulerAngles, transform.eulerAngles, 0.3f);
             }
             if (mainCamera.transform.position.y < 0.9f)
             {
@@ -74,6 +74,10 @@ public class PlayerMovement : MonoBehaviour
             {
                 showDirectionOption();
             }
+            else if(stopped)
+            {
+                playerAnimator.SetBool("Running", false);
+            }
             else
             {
                 FindNextPosition();
@@ -86,7 +90,7 @@ public class PlayerMovement : MonoBehaviour
             playerLost();
         }
         else if (endReached && victory)
-        {
+        {//Defeating the boss shows victory screen
             playerWin();
         }
         else if (defeated)
@@ -190,7 +194,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
     void setTileColour()
-    {
+    {//Check which tile the player landed on
         finishedMoving = true;
         gameManager.GetComponent<GameManager>().canRoll = true;
         PlayerPrefs.SetString("CurrentTile", currentTileColour);
@@ -239,7 +243,6 @@ public class PlayerMovement : MonoBehaviour
                 nextPos = new Vector3(tilePositions[numTiles - 1].transform.position.x, 0.3864222f, tilePositions[numTiles - 1].transform.position.z);
                 endReached = true;
                 gameManager.GetComponent<GameManager>().canRoll = false;
-                //0.6135788
             }
             else
             {
@@ -255,7 +258,6 @@ public class PlayerMovement : MonoBehaviour
                 nextPos = new Vector3(tilePositions[8].transform.position.x, 0.3864222f, tilePositions[8].transform.position.z);
                 endReached = true;
                 gameManager.GetComponent<GameManager>().canRoll = false;
-                //0.6135788
             }
             else if(movementDirection.Contains("Left"))
             {
@@ -272,26 +274,26 @@ public class PlayerMovement : MonoBehaviour
         }
         else if (PlayerPrefs.GetString("MapSelected").Contains("3"))
         {
+            movementDirection = "Right";
             if (currentTileNumber >= (numTiles - 1))
             {//If the player rolls past the last tile stop them at the end
                 nextPos = new Vector3(tilePositions[numTiles - 1].transform.position.x, 0.3864222f, tilePositions[numTiles - 1].transform.position.z);
                 endReached = true;
                 gameManager.GetComponent<GameManager>().canRoll = false;
-                //0.6135788
             }
             else if (currentTileNumber == (7))
             {//Trigger buff canvas
                 nextPos = new Vector3(tilePositions[8].transform.position.x, 0.3864222f, tilePositions[8].transform.position.z);
                 counter -= 1;
-                //0.6135788
                 endReached = false;
+                currentTileNumber += 1;
             }
             else if (currentTileNumber == (14))
             {//Trigger buff canvas
                 nextPos = new Vector3(tilePositions[15].transform.position.x, 0.3864222f, tilePositions[15].transform.position.z);
                 counter -= 1;
                 endReached = false;
-                //0.6135788
+                currentTileNumber += 1;
             }
             else
             {
@@ -303,17 +305,29 @@ public class PlayerMovement : MonoBehaviour
     }
 
     public void playerLost()
-    {
+    {//Restart run after player loss
         player.transform.position = startPos;
         currentTileNumber = 0;
         PlayerPrefs.SetInt("HealthRating", PlayerPrefs.GetInt("MaxHealthRating"));
+        PlayerPrefs.SetInt("ManaRating", PlayerPrefs.GetInt("MaxManaRating"));
         gameManager.GetComponent<GameManager>().canRoll = true;
         showRoll = true;
-        if(flipped1 || flipped2 || flipped3)
+        movementDirection = "";
+        if (flipped1 || flipped2 || flipped3)
         {//Fix the players rotation on respawn
             Vector3 newRotation = new Vector3(0, 0, 0);
             transform.eulerAngles = newRotation;
             mainCamera.transform.eulerAngles = newRotation;
+        }
+        if(transform.position.x < 0 && !PlayerPrefs.GetString("MapSelected").Contains("3"))
+        {
+            Vector3 resetPos = new Vector3(transform.position.x * -1, transform.position.y, transform.position.z);
+            transform.position = resetPos;
+        }
+        else if (transform.position.x > 0 && PlayerPrefs.GetString("MapSelected").Contains("3"))
+        {
+            Vector3 resetPos = new Vector3(transform.position.x * -1, transform.position.y, transform.position.z);
+            transform.position = resetPos;
         }
     }
     public void playerWin()
@@ -333,17 +347,29 @@ public class PlayerMovement : MonoBehaviour
         }
         else if (collision.gameObject.tag == "Blue")
         {
-            //currentTileColour = collision.gameObject.tag;
-            gameManager.GetComponent<GameManager>().BuffScene();
+            if (PlayerPrefs.GetString("MapSelected").Contains("3") && (currentTileNumber == (7) || currentTileNumber == (14)))
+            {
+                gameManager.GetComponent<GameManager>().BuffScene();
+            }
+            else if(PlayerPrefs.GetString("MapSelected").Contains("1") || PlayerPrefs.GetString("MapSelected").Contains("2"))
+            {
+                gameManager.GetComponent<GameManager>().BuffScene();
+            }
         }
+        //else if (PlayerPrefs.GetString("MapSelected").Contains("Map3") && collision.gameObject.tag.Contains("Blue"))
+        //{
+        //    //currentTileColour = collision.gameObject.tag;
+        //    gameManager.GetComponent<GameManager>().BuffScene();
+        //}
         else if (collision.gameObject.tag != "Plane")
         {
             currentTileColour = collision.gameObject.tag;
         }
+
     }
     private void OnTriggerExit(Collider collision)
     {
-        //currentTileColour = "";
+
     }
     public void SetInt(string KeyName, int Value)
     {

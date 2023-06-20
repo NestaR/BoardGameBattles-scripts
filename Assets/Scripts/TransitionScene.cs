@@ -11,7 +11,7 @@ public class TransitionScene : MonoBehaviour
     Vector2 startPosIn, startPosOut;
     // Start is called before the first frame update
     void Start()
-    {
+    {//Controls an animation that plays entering and leaving a scene
         transitionTransformIn = transitionObjectIn.GetComponent<RectTransform>();
         transitionTransformOut = transitionObjectOut.GetComponent<RectTransform>();
         startPosIn = transitionTransformIn.anchoredPosition;

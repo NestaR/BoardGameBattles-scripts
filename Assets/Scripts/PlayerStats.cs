@@ -6,8 +6,7 @@ using UnityEngine.UI;
 public class PlayerStats : MonoBehaviour
 {
     public bool battleMode, enemy, speedCheck;
-    //public bool moveSet1, moveSet2, moveSet3, moveSetBoss;
-    public string enemyMoveSet;
+    public string enemyMoveSet, enemyattack1, enemyattack2, enemyattack3, enemyattack4;
     public int currentHealth, maxHealth, currentMana, maxMana, attackRating, armorRating, speed, battleAttack, battleDefence, reviveCharges;
     public int EcurrentHealth, EmaxHealth, EattackRating, EarmorRating, Espeed;
     public Text healthUI, manaUI, maxMPUI, attackUI, armorUI, speedUI, maxHPUI, currentBattleHP, maxBattleHP, currentBattleMP, maxBattleMP, battleAttackUI, battleDefenceUI, reviveChargesUI, battleReviveChargesUI;
@@ -16,10 +15,8 @@ public class PlayerStats : MonoBehaviour
     public int sortingOrder = 0;
     private SpriteRenderer sprite;
     bool changedOrder;
-    //public Text EcurrentBattleHP, EmaxBattleHP;
     void Awake()
     {
-        //PlayerPrefs.DeleteKey("HealthRating");
         if(!enemy)
         {
             if (PlayerPrefs.HasKey("HealthRating"))
@@ -127,7 +124,10 @@ public class PlayerStats : MonoBehaviour
         {
             if(battleMode)
             {
-                sprite = this.GetComponent<SpriteRenderer>();
+                sprite = this.GetComponent<SpriteRenderer>();               
+            }
+            if(sprite != null)
+            {
                 sprite.sortingOrder = sortingOrder;
             }
             if (EcurrentHealth <= 0)
@@ -157,7 +157,7 @@ public class PlayerStats : MonoBehaviour
             PlayerPrefs.SetInt("MaxManaRating", 50);
             PlayerPrefs.SetInt("AttackRating", 12);
             PlayerPrefs.SetInt("ArmorRating", 14);
-            PlayerPrefs.SetInt("SpeedRating", 11);
+            PlayerPrefs.SetInt("SpeedRating", 9);
             PlayerPrefs.SetInt("ReviveCharges", 0);
             PlayerPrefs.Save();
             Instantiate(character1, pos, rotation, this.transform);
@@ -170,7 +170,7 @@ public class PlayerStats : MonoBehaviour
             PlayerPrefs.SetInt("MaxManaRating", 50);
             PlayerPrefs.SetInt("AttackRating", 9);
             PlayerPrefs.SetInt("ArmorRating", 21);
-            PlayerPrefs.SetInt("SpeedRating", 9);
+            PlayerPrefs.SetInt("SpeedRating", 8);
             PlayerPrefs.SetInt("ReviveCharges", 0);
             PlayerPrefs.Save();
             pos.y += -0.16f;
@@ -210,7 +210,7 @@ public class PlayerStats : MonoBehaviour
             PlayerPrefs.SetInt("ManaRating", 40);
             PlayerPrefs.SetInt("MaxManaRating", 40);
             PlayerPrefs.SetInt("AttackRating", 15);
-            PlayerPrefs.SetInt("ArmorRating", 11);
+            PlayerPrefs.SetInt("ArmorRating", 12);
             PlayerPrefs.SetInt("SpeedRating", 11);
             PlayerPrefs.SetInt("ReviveCharges", 0);
             PlayerPrefs.Save();
