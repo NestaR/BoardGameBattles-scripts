@@ -272,7 +272,7 @@ public class BattleMoves : MonoBehaviour
         healthPotionAmount.text = PlayerPrefs.GetInt("HealthPotions").ToString();
         manaPotionAmount.text = PlayerPrefs.GetInt("ManaPotions").ToString();
         mixedPotionAmount.text = PlayerPrefs.GetInt("SpecialPotions").ToString();
-        abilityUI.text = signatureAbility;
+        abilityUI.text = signatureAbility;      
     }
     public void checkHP()
     {
@@ -639,7 +639,7 @@ public class BattleMoves : MonoBehaviour
         // check if we won
         if (battleState == BattleState.WIN && (enemyStats.enemyMoveSet.Contains("BringerOfDeath") || enemyStats.enemyMoveSet.Contains("TheKing") || enemyStats.enemyMoveSet.Contains("EvilWizard")))
         {     
-            PlayerPrefs.SetInt("EnemiesDefeated", PlayerPrefs.GetInt("EnemiesDefeated") + 1);
+            PlayerPrefs.SetInt("EnemiesDefeated", PlayerPrefs.GetInt("EnemiesDefeated") + 1);           
             mapSelectedWin();
             yield return new WaitForSeconds(2);
             Destroy(enemy.gameObject);

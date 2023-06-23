@@ -20,6 +20,8 @@ public class GameManager : MonoBehaviour
     string sceneName;
     public Button map3, char3;
     public Image mapImage3, playerImage3;
+    public Text enemiesDefeatedText, totalTimeText, totalRunsText;
+    float mapTimer;
     PlayerMovement playerM;
     SoundScript sound;
     AudioSource myAudio;
@@ -36,6 +38,12 @@ public class GameManager : MonoBehaviour
         if (sceneName == "StartScene")
         {
             deleteAllKeys();
+        }
+        else if (sceneName == "VictoryScene")
+        {//Show some endgame stats
+            enemiesDefeated.text = PlayerPrefs.GetString("EnemiesDefeated").ToString();
+            totalTimeText.text = PlayerPrefs.GetString("TotalMapTime");
+            totalRunsText.text = PlayerPrefs.GetInt("PlayerRun").ToString();
         }
         //PlayerPrefs.SetString("MapWins", "");
         foreach (var ch in PlayerPrefs.GetString("MapWins"))
@@ -67,6 +75,7 @@ public class GameManager : MonoBehaviour
     }
     void Update()
     {
+        mapTimer += Time.deltaTime;
         if (mapSelect != null)
         {
             if (mapSelected == "")
@@ -130,6 +139,7 @@ public class GameManager : MonoBehaviour
         {
             if (this.GetComponent<TransitionScene>().animationFinished)
             {//Show the victory scene after defeating the boss
+                PlayerPrefs.SetString("TotalMapTime", mapTimer.ToString());
                 SceneManager.UnloadSceneAsync("BattleScene");                
                 PlayerPrefs.DeleteKey("NextScene");
                 SceneManager.LoadScene("VictoryScene");
